@@ -1,68 +1,45 @@
-## Obsidian Sample Plugin
+# obsidian-yaml-bulk-edit 批量编辑yaml
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+## 此插件涉及到批量修改文档内容，所以使用前请进行数据备份！！
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+## 使用此插件导致的任何数据丢失本人概不负责。
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+这个插件是用来批量编辑obsidian中文档的yaml的。
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Changes the default font color to red using `styles.css`.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+支持：
 
-### First time developing plugins?
+1. `添加新属性`
+2. `修改属性名`
+3. `修改属性值`
+4. `删除属性`
 
-Quick starting guide for new plugin devs:
+# 安装
 
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+手动从release页面下载安装
 
-### Releasing new releases
+# 使用方法
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+1. 输入条件筛选文档
+2. 确认筛选的文档和自己想要修改的目标文档一致
+3. 选择操作
+4. 输入参数
+5. 修改完成
 
-### Adding your plugin to the community plugin list
+## 具体操作
 
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+1. Ctrl+P调出命令面板，选择命令`YAML属性批量管理: 打开操作面板`
+2. 点击命令后进入**面板①**，在这里输入条件以筛选文档，可以添加新的条件（注意：各个条件之间为与关系），输入完成后确定。目前支持以下几种条件：
+   1. `yaml`——`包含/不包含`——`属性名`
+   2. `yaml属性`——`属性名`——`属性值`
+   3. `标签`——`包含/不包含`——`标签名`
+   4. `文件名称`——`符合/不符合`——`正则表达式`
+   5. `文件路径`——`符合/不符合`——`正则表达式`
+3. 点击确定后进入到**面板②**，这里会展示筛选的文档，当您确认文档符合要求后可选择具体操作进行下一步。可选择的操作有：
+   1. `添加新属性`
+   2. `修改属性名`
+   3. `修改属性值`
+   4. `删除属性`
+4. 点击具体操作后进入到**面板③**，在这里输入值来进行最后一步的操作。请谨慎操作！！确认输入无误后点击确定即可提交。
+5. 到这里就完成批量修改操作了。
+6. 对于十分重要的yaml属性值，为了避免对这些重要的属性值造成误删、误改，可以将他们添加到设置页面的`禁止删除和修改的属性名称`中，多个属性值之间以英文半角逗号`,`隔开。例如`ctime,mtime`
 
-### How to use
-
-- Clone this repo.
-- `npm i` or `yarn` to install dependencies
-- `npm run dev` to start compilation in watch mode.
-
-### Manually installing the plugin
-
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-### Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
-
-
-### API Documentation
-
-See https://github.com/obsidianmd/obsidian-api
