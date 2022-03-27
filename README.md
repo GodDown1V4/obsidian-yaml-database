@@ -4,7 +4,7 @@
 
 ## 使用此插件导致的任何数据丢失本人概不负责。
 
-这个插件是用来批量编辑obsidian中文档的yaml的。
+这个插件是用来批量编辑obsidian中文档的yaml的，视频演示：[obsidian批量修改文档yaml属性插件演示](https://www.bilibili.com/video/BV1pq4y1Y7as/)
 
 支持：
 
