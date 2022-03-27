@@ -1,0 +1,45 @@
+/* Sets all the text color to red! */
+
+input.kanbanMOC {
+	display: block; 
+	margin: 10px auto;
+	font-size:17px;
+
+	border: 1px solid #ccc;
+	padding: 7px 0px;
+	border-radius: 3px;
+	padding-left:5px;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+	box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+	-webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+	-o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+	transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s
+}
+input.kanbanMOC:focus{
+		border-color: #66afe9;
+		outline: 0;
+		-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+		box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6)
+}
+button.kanbanMOC{
+	display:block;
+	margin:10px auto;
+	border: 0.5px solid var(--button-border, #7a9486);
+	border-radius: var(--button-border-radius, 5px);
+	background-color: var(--button-background);
+	padding: 10px 30px;
+	color: var(--button-text);
+	text-decoration: none;
+	font-size: var(--button-size);
+	box-shadow: 0 1px 3px var(--button-box-shadow, rgba(0, 0, 0, 0.12)),
+	  0 1px 2px var(--button-box-shadow, rgba(0, 0, 0, 0.24));
+	transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+  
+button.kanbanMOC:hover {
+	display:block;
+	margin:10px auto;
+	z-index: 100;
+	box-shadow: 0 4px 4px var(--button-box-shadow, rgba(210, 210, 210, 0.25)), 0 10px 10px var(--button-box-shadow, rgba(210, 210, 210, 0.22));
+	transform: translate3d(0px, -1.5px, 0px);
+}
