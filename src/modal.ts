@@ -646,9 +646,9 @@ export class Condition {
         var app = this.app;
 		input1.oninput = function() {
             // 输入选框1改动时其它2个选框清空
-            input2.empty();
+            input2.value = "";
 			searchResult2.empty();
-            input3.empty();
+            input3.value = "";
 			searchResult3.empty();
 
             // 输入1搜索候选项
