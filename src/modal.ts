@@ -121,6 +121,12 @@ export class SelectedFileModal extends Modal{
 			}
 		})
         button4.setText("删除属性")
+        var button5 = contentEl.createEl("button", {
+			'attr': {
+				"class": "kanbanMOC",
+			}
+		})
+        button5.setText("删除整个YAML(❗危险操作☠️)")
 
         // 展示搜索到的文档
         var search = new Search(this.app);
@@ -145,6 +151,9 @@ export class SelectedFileModal extends Modal{
         }
         button4.onclick = function() {
             new OperationModal(app, "删除属性", tfiles).open()
+        }
+        button5.onclick = function() {
+            new OperationModal(app, "删除整个YAML", tfiles).open()
         }
 
     }
@@ -174,8 +183,24 @@ export class SelectedFileModal extends Modal{
             case "修改属性名": this.updatePropertyName(); break;
             case "修改属性值": this.updatePropertyValue(); break;
             case "删除属性": this.delProperty(); break;
+            case "删除整个YAML": this.delYAML(); break;
             default: break;
         }
+    }
+
+    getPropertiesNameOfTflies(tfiles: Array<TFile>) {
+        var propertiesList: Array<string> = new Array()
+        for (var file of tfiles) {
+            for (var name of new MDIO(this.app, file.path).getPropertiesName()) {
+                if (propertiesList.indexOf(name) == -1) {
+                    propertiesList.push(name)
+                    // var li = document.createElement('li');
+                    // li.innerHTML = name;
+                    // property.appendChild(li)
+                }
+            }
+        }
+        return propertiesList
     }
 
     addProperty() {
@@ -194,19 +219,14 @@ export class SelectedFileModal extends Modal{
 
         // 展示已有属性
 		var property = contentEl.createEl("ul")
+        var modal = this
         // 更新属性值
         button.onclick = function() {
             property.empty()
-            var propertiesList = new Array()
-            for (var file of tfiles) {
-                for (var name of new MDIO(app, file.path).getPropertiesName()) {
-                    if (propertiesList.indexOf(name) == -1) {
-                        propertiesList.push(name)
-                        var li = document.createElement('li');
-                        li.innerHTML = name;
-                        property.appendChild(li)
-                    }
-                }
+            for (var name of modal.getPropertiesNameOfTflies(tfiles)) {
+                var li = document.createElement('li');
+                li.innerHTML = name;
+                property.appendChild(li)
             }
         }
         setTimeout(() =>{
@@ -270,6 +290,10 @@ export class SelectedFileModal extends Modal{
     }
 
     delProperty() {
+        var modal = this
+        var app = this.app
+        var tfiles = this.tfiles
+
 		const title = this.titleEl
 		title.setText("批量删除属性");
 
@@ -288,16 +312,10 @@ export class SelectedFileModal extends Modal{
         // 更新属性值
         button.onclick = function() {
             property.empty()
-            var propertiesList = new Array()
-            for (var file of tfiles) {
-                for (var name of new MDIO(app, file.path).getPropertiesName()) {
-                    if (propertiesList.indexOf(name) == -1) {
-                        propertiesList.push(name)
-                        var li = document.createElement('li');
-                        li.innerHTML = name;
-                        property.appendChild(li)
-                    }
-                }
+            for (var name of modal.getPropertiesNameOfTflies(tfiles)) {
+                var li = document.createElement('li');
+                li.innerHTML = name;
+                property.appendChild(li)
             }
         }
         setTimeout(() =>{
@@ -322,11 +340,31 @@ export class SelectedFileModal extends Modal{
 		var input1 = form.createEl("input", {
 			'attr': {
 				"class": "kanbanMOC",
-				'type': 'text'
+				'type': 'text',
+                'list': 'finally'
 			}
 		})
 		input1.placeholder = "属性名";
 
+		var searchResult1 = form.createEl("datalist", {
+			"attr": {
+				"id": "finally"
+			}
+		})
+        searchResult1.empty()
+        for(var choice of modal.getPropertiesNameOfTflies(tfiles)){
+            var item = document.createElement('option');
+            item.innerHTML = choice;
+            searchResult1.appendChild(item);
+        }
+        input1.oninput = function() {
+            searchResult1.empty()
+            for(var choice of modal.getPropertiesNameOfTflies(tfiles)){
+                var item = document.createElement('option');
+                item.innerHTML = choice;
+                searchResult1.appendChild(item);
+            }
+        }
         
         // 确认框
 		form.createEl("input", {
@@ -336,9 +374,6 @@ export class SelectedFileModal extends Modal{
 				'value': '   确定    ',
 			}
 		})
-
-        var app = this.app
-        var tfiles = this.tfiles
         // 处理提交
         form.onsubmit = function() {
             if (settingStr.split(",").indexOf(input1.value)==-1) {
@@ -359,8 +394,12 @@ export class SelectedFileModal extends Modal{
     }
 
     updatePropertyName() {
+        var modal = this
+        var app = this.app
+        var tfiles = this.tfiles
+
 		const title = this.titleEl
-		title.setText("批量添加属性");
+		title.setText("批量修改属性名称");
 
 		const {contentEl} = this;
 		
@@ -374,19 +413,13 @@ export class SelectedFileModal extends Modal{
 
         // 展示已有属性
 		var property = contentEl.createEl("ul")
-        // 更新属性值
+        // 更新属性名
         button.onclick = function() {
             property.empty()
-            var propertiesList = new Array()
-            for (var file of tfiles) {
-                for (var name of new MDIO(app, file.path).getPropertiesName()) {
-                    if (propertiesList.indexOf(name) == -1) {
-                        propertiesList.push(name)
-                        var li = document.createElement('li');
-                        li.innerHTML = name;
-                        property.appendChild(li)
-                    }
-                }
+            for (var name of modal.getPropertiesNameOfTflies(tfiles)) {
+                var li = document.createElement('li');
+                li.innerHTML = name;
+                property.appendChild(li)
             }
         }
         setTimeout(() =>{
@@ -411,10 +444,32 @@ export class SelectedFileModal extends Modal{
 		var input1 = form.createEl("input", {
 			'attr': {
 				"class": "kanbanMOC",
-				'type': 'text'
+				'type': 'text',
+                'list': 'finally'
 			}
 		})
 		input1.placeholder = "旧属性名";
+
+		var searchResult1 = form.createEl("datalist", {
+			"attr": {
+				"id": "finally"
+			}
+		})
+        searchResult1.empty()
+        for(var choice of modal.getPropertiesNameOfTflies(tfiles)){
+            var item = document.createElement('option');
+            item.innerHTML = choice;
+            searchResult1.appendChild(item);
+        }
+        input1.oninput = function() {
+            searchResult1.empty()
+            for(var choice of modal.getPropertiesNameOfTflies(tfiles)){
+                var item = document.createElement('option');
+                item.innerHTML = choice;
+                searchResult1.appendChild(item);
+            }
+        }
+
 		var input2 = form.createEl("input", {
 			'attr': {
 				"class": "kanbanMOC",
@@ -432,9 +487,6 @@ export class SelectedFileModal extends Modal{
 				'value': '   确定    ',
 			}
 		})
-
-        var app = this.app
-        var tfiles = this.tfiles
         // 处理提交
         form.onsubmit = function() {
             if (settingStr.split(",").indexOf(input1.value)==-1) {
@@ -460,8 +512,12 @@ export class SelectedFileModal extends Modal{
     }
 
     updatePropertyValue() {
+        var modal = this
+        var app = this.app
+        var tfiles = this.tfiles
+
 		const title = this.titleEl
-		title.setText("批量添加属性");
+		title.setText("批量修改属性值");
 
 		const {contentEl} = this;
 		
@@ -478,16 +534,10 @@ export class SelectedFileModal extends Modal{
         // 更新属性值
         button.onclick = function() {
             property.empty()
-            var propertiesList = new Array()
-            for (var file of tfiles) {
-                for (var name of new MDIO(app, file.path).getPropertiesName()) {
-                    if (propertiesList.indexOf(name) == -1) {
-                        propertiesList.push(name)
-                        var li = document.createElement('li');
-                        li.innerHTML = name;
-                        property.appendChild(li)
-                    }
-                }
+            for (var name of modal.getPropertiesNameOfTflies(tfiles)) {
+                var li = document.createElement('li');
+                li.innerHTML = name;
+                property.appendChild(li)
             }
         }
         setTimeout(() =>{
@@ -512,10 +562,31 @@ export class SelectedFileModal extends Modal{
 		var input1 = form.createEl("input", {
 			'attr': {
 				"class": "kanbanMOC",
-				'type': 'text'
+				'type': 'text',
+				"list": "finally"
 			}
 		})
 		input1.placeholder = "属性名";
+		var searchResult1 = form.createEl("datalist", {
+			"attr": {
+				"id": "finally"
+			}
+		})
+        searchResult1.empty()
+        for(var choice of modal.getPropertiesNameOfTflies(tfiles)){
+            var item = document.createElement('option');
+            item.innerHTML = choice;
+            searchResult1.appendChild(item);
+        }
+        input1.oninput = function() {
+            searchResult1.empty()
+            for(var choice of modal.getPropertiesNameOfTflies(tfiles)){
+                var item = document.createElement('option');
+                item.innerHTML = choice;
+                searchResult1.appendChild(item);
+            }
+        }
+
 		var input2 = form.createEl("input", {
 			'attr': {
 				"class": "kanbanMOC",
@@ -533,9 +604,6 @@ export class SelectedFileModal extends Modal{
 				'value': '   确定    ',
 			}
 		})
-
-        var app = this.app
-        var tfiles = this.tfiles
         // 处理提交
         form.onsubmit = function() {
             if (settingStr.split(",").indexOf(input1.value)==-1) {
@@ -550,6 +618,63 @@ export class SelectedFileModal extends Modal{
             }
             else {
                 new Notice(`“${input1.value}”为禁止删除和修改的属性, 请在设置面板里删除该项后重试`)
+            }
+        }
+
+    }
+    
+    delYAML() {
+        var modal = this
+        var app = this.app
+        var tfiles = this.tfiles
+
+		const title = this.titleEl
+		title.setText("批量删除整个YAML(❗危险操作☠️)");
+
+		const {contentEl} = this;
+		
+        // 展示属性按钮
+        var button = contentEl.createEl("button", {
+			'attr': {
+				"class": "kanbanMOC",
+			}
+		})
+        button.setText("这些文件包含的属性(刷新)")
+
+        // 展示已有属性
+		var property = contentEl.createEl("ul")
+        // 更新属性值
+        button.onclick = function() {
+            property.empty()
+            for (var name of modal.getPropertiesNameOfTflies(tfiles)) {
+                var li = document.createElement('li');
+                li.innerHTML = name;
+                property.appendChild(li)
+            }
+        }
+        setTimeout(() =>{
+            button.click();
+        }, 100)
+        
+        // 介绍
+		contentEl.createDiv().innerHTML = "此处批量删除文档的整个YAML只会对那些不包含重要属性的文档进行操作,\
+        因包含重要属性而无法删除的文档请在控制台(Ctrl+Shift+i)查看"
+        
+        // 删除确认按钮
+        var button2 = contentEl.createEl("button", {
+			'attr': {
+				"class": "kanbanMOC",
+			}
+		})
+        button2.setText("确认删除(❗危险操作☠️)")
+        // 处理提交
+        button2.onclick = function() {
+            for (var file of tfiles) {
+                var md = new MDIO(app, file.path)
+                md.delTheWholeYaml();
+                setTimeout(() =>{
+                    button.click();
+                }, 100)
             }
         }
 
@@ -597,8 +722,7 @@ export class Condition {
 			}
 		})
         
-        var choice1 = ["yaml", "yaml属性", "标签", "文件名称", "文件路径"]
-        for(var choice of choice1){
+        for(var choice of ["yaml", "yaml属性", "标签", "文件名称", "文件路径"]){
             var item = document.createElement('option');
             item.innerHTML = choice;
             searchResult1.appendChild(item);
@@ -656,14 +780,14 @@ export class Condition {
             // 如果input1值为候选项中的值，则开始处理输入2、3候选项
             if (input1.value == "yaml") {
                 // 处理input2
-                for(var choice of searchByIndexOf(input2.value, ["包含", "不包含"])){
+                for(var choice of ["包含", "不包含"]){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
                     searchResult2.appendChild(item);
                 }
                 // 处理input3
                 var search = new Search(app);
-                for(var choice of searchByIndexOf(input3.value, search.getAllYamlPropertiesName())){
+                for(var choice of search.getAllYamlPropertiesName()){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
                     searchResult3.appendChild(item);
@@ -672,28 +796,34 @@ export class Condition {
             else if (input1.value == "yaml属性") {
                 // 处理input2
                 var search = new Search(app);
-                for(var choice of searchByIndexOf(input2.value, search.getAllYamlPropertiesName())){
+                for(var choice of search.getAllYamlPropertiesName()){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
                     searchResult2.appendChild(item);
                 }
                 // 处理input3
-                for(var choice of searchByIndexOf(input3.value, search.getAllValuesOfAProperty(input2.value))){
-                    var item = document.createElement('option');
-                    item.innerHTML = choice;
-                    searchResult3.appendChild(item);
+                input2.oninput = function() {
+                    if (input1.value == "yaml属性") {
+                        for(var choice of search.getAllValuesOfAProperty(input2.value)){
+                            if (choice) {
+                                var item = document.createElement('option');
+                                item.innerHTML = choice;
+                                searchResult3.appendChild(item);
+                            }
+                        }
+                    }
                 }
             }
             else if (input1.value == "标签") {
                 // 处理input2
-                for(var choice of searchByIndexOf(input2.value, ["包含", "不包含"])){
+                for(var choice of ["包含", "不包含"]){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
                     searchResult2.appendChild(item);
                 }
                 // 处理input3
                 var search = new Search(app);
-                for(var choice of searchByIndexOf(input3.value, search.getAllTagsName())){
+                for(var choice of search.getAllTagsName()){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
                     searchResult3.appendChild(item);
@@ -701,7 +831,7 @@ export class Condition {
             }
             else if (input1.value == "文件名称" || input1.value == "文件路径") {
                 // 处理input2
-                for(var choice of searchByIndexOf(input2.value, ["符合", "不符合"])){
+                for(var choice of ["符合", "不符合"]){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
                     searchResult2.appendChild(item);
@@ -710,52 +840,4 @@ export class Condition {
 		}
         return [input1, input2, input3]
     }
-}
-
-
-//模糊查询1:利用字符串的indexOf方法
-function searchByIndexOf(keyWord:string, list:Array<string>){
-	if(!(list instanceof Array)){
-		return ;
-	}
-	var len = list.length;
-	var arr = [];
-	for(var i=0;i<len;i++){
-		//如果字符串中不包含目标字符会返回-1
-		if(list[i].indexOf(keyWord)>=0){
-			arr.push(list[i]);
-		}
-	}
-	return arr;
-}
-//正则匹配
-function searchByRegExp(keyWord:string, list:Array<string>){
-	if(!(list instanceof Array)){
-		return ;
-	}
-	var len = list.length;
-	var arr = [];
-	var reg = new RegExp(keyWord);
-	for(var i=0;i<len;i++){
-		//如果字符串中不包含目标字符会返回-1
-		if(list[i].match(reg)){
-			arr.push(list[i]);
-		}
-	}
-	return arr;
-}
-function renderFruits(list:Array<string>){
-	// 在这里更改你要进行动态生成的datalist的id
-	var oList = document.getElementById('databases');
-	if(!(list instanceof Array)){
-		return ;
-	}
-	oList.innerHTML = '';
-	var len = list.length;
-	var item = null;
-	for(var i=0;i<len;i++){
-		item = document.createElement('li');
-		item.innerHTML = list[i];
-		oList.appendChild(item);
-	}
 }

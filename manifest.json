@@ -1,7 +1,7 @@
 {
 	"id": "yaml-database",
 	"name": "YAML属性批量管理",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"minAppVersion": "0.12.0",
 	"description": "进行YAML的批量管理",
 	"author": "wd",
