@@ -449,9 +449,12 @@ export class Search{
      * @returns 
      */
     isBannedFolder(path: string) {
-        for (var folder of bannedFolder.split(',')) {
-            if(path.startsWith(folder)) {
-                return true
+        if (bannedFolder) {
+            for (var folder of bannedFolder.split(',')) {
+                console.log(folder)
+                if(path.startsWith(folder)) {
+                    return true
+                }
             }
         }
         return false
