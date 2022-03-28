@@ -420,11 +420,10 @@ export class Search{
                         }
                     }
                 }
-            }
-
-            // 最终符合要求的存入数组
-            if (fileSelected) {
-                tFiles.push(file)
+                // 最终符合要求的存入数组
+                if (fileSelected) {
+                    tFiles.push(file)
+                }
             }
         }
         return tFiles
