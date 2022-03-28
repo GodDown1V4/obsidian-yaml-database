@@ -4,11 +4,13 @@ import { MainModal } from "src/modal";
 // 定义插件里需要保存、用到的变量
 interface MyPluginSettings {
 	importantProp: string;
+	bannedFolder: string;
 }
 
 // 定义 DEFAULT_SETTINGS 并使用接口设置（DEFAULT_SETTINGS会在后边的插件主功能中的“loadSettings”（加载设置）中用到）
 const DEFAULT_SETTINGS: MyPluginSettings = {
-	importantProp: ''
+	importantProp: '',
+	bannedFolder: ''
 }
 
 
@@ -39,7 +41,8 @@ export default class MyPlugin extends Plugin {
 	// 异步：加载设置
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-		settingStr = this.settings.importantProp;
+		importantProp = this.settings.importantProp;
+		bannedFolder = this.settings.bannedFolder;
 	}
 
 	// 异步：保存设置
@@ -77,11 +80,26 @@ class SettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.importantProp)
 				.onChange(async (value) => {
 					this.plugin.settings.importantProp = value;
-					settingStr = this.plugin.settings.importantProp
+					importantProp = this.plugin.settings.importantProp
+					await this.plugin.saveSettings();
+				}));
+
+		
+		// 新建一个设置选项
+		new Setting(containerEl)
+			.setName('需要忽略的文件夹')
+			.setDesc('注意: 多个文件夹路径之间请以英文半角逗号`,`分隔, 路径开头不要加`/`。 例如: `资源/电影` 而不是 `/资源/电影`。 如果您的文件夹路径中含有英文半角逗号`,`, 则可能会导致一些错误。')
+			.addText(text => text
+				.setPlaceholder('Enter your secret')
+				.setValue(this.plugin.settings.bannedFolder)
+				.onChange(async (value) => {
+					this.plugin.settings.bannedFolder = value;
+					bannedFolder = this.plugin.settings.bannedFolder
 					await this.plugin.saveSettings();
 				}));
 	}
 }
 
 // 暴露
-export var settingStr: string
+export var importantProp: string
+export var bannedFolder: string

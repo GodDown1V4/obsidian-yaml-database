@@ -1,6 +1,6 @@
 import { Modal, App, TFile, Notice } from "obsidian";
 import { MDIO, Search } from "src/md";
-import { settingStr } from "main";
+import { importantProp, bannedFolder} from "main";
 
 var conditionNameCount = 0;
 /**
@@ -129,37 +129,84 @@ export class SelectedFileModal extends Modal{
         button5.setText("删除整个YAML(❗危险操作☠️)")
 
         // 展示搜索到的文档
+        
+		// 2、无刷新表单
+		contentEl.createEl("iframe", {
+			'attr': {
+				'id': 'id_iframe',
+				'name': 'id_iframe',
+				'style': 'display:none',
+			}
+		})
+
+		var form = contentEl.createEl("form", {
+			'attr': {
+				'target': 'id_iframe',
+			}
+		})
+
         var search = new Search(this.app);
         var tfiles = search.getSelectedTFiles(this.conditions);
-        var mdStr = ""
+
+        var checkBoxesList: Array<HTMLInputElement> = new Array();
         for (var tfile of tfiles) {
-            mdStr = mdStr + tfile.path + "<br>"
+            var checkBox = document.createElement("input")
+            checkBox.setAttrs({
+                "type": "checkbox",
+                'name': `${tfile.path}`,
+                "checked": true
+            })
+            var text = document.createElement("i")
+            text.innerHTML = `${tfile.path}<br>`
+            checkBoxesList.push(checkBox) 
+            form.appendChild(checkBox)
+            form.appendChild(text)
         }
-        contentEl.createSpan().innerHTML = mdStr
 
         var app = this.app
+        var modal = this
+
         
         // 按钮按下的操作
         button1.onclick = function() {
-            new OperationModal(app, "添加新属性", tfiles).open()
+            var finallTfiles = modal.getCheckedTfiles(tfiles, checkBoxesList)
+            new OperationModal(app, "添加新属性", finallTfiles).open()
         }
         button2.onclick = function() {
-            new OperationModal(app, "修改属性名", tfiles).open()
+            var finallTfiles = modal.getCheckedTfiles(tfiles, checkBoxesList)
+            new OperationModal(app, "修改属性名", finallTfiles).open()
         }
         button3.onclick = function() {
-            new OperationModal(app, "修改属性值", tfiles).open()
+            var finallTfiles = modal.getCheckedTfiles(tfiles, checkBoxesList)
+            new OperationModal(app, "修改属性值", finallTfiles).open()
         }
         button4.onclick = function() {
-            new OperationModal(app, "删除属性", tfiles).open()
+            var finallTfiles = modal.getCheckedTfiles(tfiles, checkBoxesList)
+            new OperationModal(app, "删除属性", finallTfiles).open()
         }
         button5.onclick = function() {
-            new OperationModal(app, "删除整个YAML", tfiles).open()
+            var finallTfiles = modal.getCheckedTfiles(tfiles, checkBoxesList)
+            new OperationModal(app, "删除整个YAML", finallTfiles).open()
         }
 
     }
 
     onClose(): void {
         
+    }
+
+    getCheckedTfiles(tfiles: Array<TFile>,checkBoxesList:Array<HTMLInputElement>) {
+        var finalTfiles:Array<TFile> = new Array()
+        for (var checkBox of checkBoxesList) {
+            if (checkBox.checked) {
+                for (var file of tfiles) {
+                    if (file.path == checkBox.name) {
+                        finalTfiles.push(file)
+                    }
+                }
+            }
+        }
+        return finalTfiles
     }
 }
 
@@ -376,7 +423,7 @@ export class SelectedFileModal extends Modal{
 		})
         // 处理提交
         form.onsubmit = function() {
-            if (settingStr.split(",").indexOf(input1.value)==-1) {
+            if (importantProp.split(",").indexOf(input1.value)==-1) {
                 for (var file of tfiles) {
                     var md = new MDIO(app, file.path)
                     md.delProperty(input1.value);
@@ -489,7 +536,7 @@ export class SelectedFileModal extends Modal{
 		})
         // 处理提交
         form.onsubmit = function() {
-            if (settingStr.split(",").indexOf(input1.value)==-1) {
+            if (importantProp.split(",").indexOf(input1.value)==-1) {
                 if (input2.value) {
                     for (var file of tfiles) {
                         var md = new MDIO(app, file.path)
@@ -606,7 +653,7 @@ export class SelectedFileModal extends Modal{
 		})
         // 处理提交
         form.onsubmit = function() {
-            if (settingStr.split(",").indexOf(input1.value)==-1) {
+            if (importantProp.split(",").indexOf(input1.value)==-1) {
                 for (var file of tfiles) {
                     var md = new MDIO(app, file.path)
                     md.updatePropertyValue(input1.value, input2.value);

@@ -1,5 +1,5 @@
 import { App, FrontMatterCache, Notice, TFile } from "obsidian";
-import { settingStr } from "main";
+import { importantProp, bannedFolder } from "main";
 
 export class MDIO{
     app:App;
@@ -150,7 +150,7 @@ export class MDIO{
             // 是否存在该属性？且新属性名是否不存在？
             if (this.hasProperty(oldProperty) && !this.hasProperty(newProperty)) {
                 // 检测是否为禁止操作项？
-                if (settingStr.split(",").indexOf(oldProperty)==-1) {   // 不是禁止操作项
+                if (importantProp.split(",").indexOf(oldProperty)==-1) {   // 不是禁止操作项
                     this.app.vault.read(this.getTFile()).then(oldContent => {
                         var newContent = oldContent.replace(`\n${oldProperty}:`, `\n${newProperty}:`)
                         
@@ -167,7 +167,7 @@ export class MDIO{
             // 是否存在该属性？
             if (this.hasProperty(Property)) {
                 // 检测是否为禁止操作项？
-                if (settingStr.split(",").indexOf(Property)==-1) {   // 不是禁止操作项
+                if (importantProp.split(",").indexOf(Property)==-1) {   // 不是禁止操作项
                     this.app.vault.read(this.getTFile()).then(oldContent => {
                         // 找到Property的行号
                         var oldContentList = oldContent.split("\n");
@@ -200,7 +200,7 @@ export class MDIO{
             // 是否存在该属性？
             if (this.hasProperty(delProperty)) {
                 // 检测是否为禁止操作项？
-                if (settingStr.split(",").indexOf(delProperty)==-1) {   // 不是禁止操作项
+                if (importantProp.split(",").indexOf(delProperty)==-1) {   // 不是禁止操作项
                     this.app.vault.read(this.getTFile()).then(oldContent => {
                         // 找到delProperty的行号
                         var oldContentList = oldContent.split("\n");
@@ -232,7 +232,7 @@ export class MDIO{
         if(this.hasYaml()) {
             var canBeDeleted = true
             for (var propertyName of this.getPropertiesName()) {
-                if(settingStr.split(",").indexOf(propertyName)!=-1) {
+                if(importantProp.split(",").indexOf(propertyName)!=-1) {
                     canBeDeleted = false
                     console.log(`${this.path} 中包含禁止删除和修改的属性:${propertyName}, 所以无法对当前文档进行删除整个YAML的操作。`)
                 }
@@ -307,9 +307,12 @@ export class Search{
     getAllTagsName():Array<string> {
         var nameList = new Array();
         for (var file of this.app.vault.getMarkdownFiles()) {
-            for (var TagName of new MDIO(this.app, file.path).getTagsName()) {
-                if (nameList.indexOf(TagName) == -1) {
-                    nameList.push(TagName)
+            // 如果不是忽略文件夹下的文件就可以继续
+            if (!this.isBannedFolder(file.path)) {
+                for (var TagName of new MDIO(this.app, file.path).getTagsName()) {
+                    if (nameList.indexOf(TagName) == -1) {
+                        nameList.push(TagName)
+                    }
                 }
             }
         }
@@ -319,90 +322,101 @@ export class Search{
     getAllYamlPropertiesName():Array<string> {
         var yamlPropertiesName = new Array();
         for (var file of this.app.vault.getMarkdownFiles()) {
-            for (var propertyName of new MDIO(this.app, file.path).getPropertiesName()) {
-                if (yamlPropertiesName.indexOf(propertyName) == -1) {
-                    yamlPropertiesName.push(propertyName)
+            // 如果不是忽略文件夹下的文件就可以继续
+            if (!this.isBannedFolder(file.path)) {
+                for (var propertyName of new MDIO(this.app, file.path).getPropertiesName()) {
+                    if (yamlPropertiesName.indexOf(propertyName) == -1) {
+                        yamlPropertiesName.push(propertyName)
+                    }
                 }
             }
         }
         return yamlPropertiesName
     }
     
+    /**
+     * 根据面板①的条件筛选文档
+     * @param conditions 
+     * @returns 
+     */
     getSelectedTFiles(conditions: Array<Array<string>>):Array<TFile> {
         var tFiles = new Array()
         for (var file of this.app.vault.getMarkdownFiles()) {
-            var md = new MDIO(this.app, file.path)
+            // 如果不是忽略文件夹下的文件就可以继续
+            if (!this.isBannedFolder(file.path)) {
+                var md = new MDIO(this.app, file.path)
 
-            var fileSelected = true;
+                var fileSelected = true;
 
-            // 条件判断
-            for (var condition of conditions) {
-                // 1、yaml
-                if (condition[0] == "yaml") {
-                    if (condition[1] == "包含") {
-                        if (!md.hasProperty(condition[2])) {
+                // 条件判断
+                for (var condition of conditions) {
+                    // 1、yaml
+                    if (condition[0] == "yaml") {
+                        if (condition[1] == "包含") {
+                            if (!md.hasProperty(condition[2])) {
+                                fileSelected = false
+                                break
+                            }
+                        }
+                        else if(condition[1] == "不包含") {
+                            if (md.hasProperty(condition[2])) {
+                                fileSelected = false
+                                break
+                            }
+                        }
+                    }
+                    else if (condition[0] == "yaml属性") {
+                        if (!md.hasProperty(condition[1])) {
+                            fileSelected = false
+                            break
+                        }
+                        else if(md.getPropertyValue(condition[1]) != condition[2]) {
                             fileSelected = false
                             break
                         }
                     }
-                    else if(condition[1] == "不包含") {
-                        if (md.hasProperty(condition[2])) {
-                            fileSelected = false
-                            break
+                    else if (condition[0] == "标签") {
+                        if (condition[1] == "包含") {
+                            if (!md.hasTag(condition[2])) {
+                                fileSelected = false
+                                break
+                            }
+                        }
+                        else if(condition[1] == "不包含") {
+                            if (md.hasTag(condition[2])) {
+                                fileSelected = false
+                                break
+                            }
                         }
                     }
-                }
-                else if (condition[0] == "yaml属性") {
-                    if (!md.hasProperty(condition[1])) {
-                        fileSelected = false
-                        break
-                    }
-                    else if(md.getPropertyValue(condition[1]) != condition[2]) {
-                        fileSelected = false
-                        break
-                    }
-                }
-                else if (condition[0] == "标签") {
-                    if (condition[1] == "包含") {
-                        if (!md.hasTag(condition[2])) {
-                            fileSelected = false
-                            break
+                    else if (condition[0] == "文件名称") {
+                        var reg = new RegExp(condition[2]);
+                        if (condition[1] == "符合") {
+                            if (!file.basename.match(reg)) {
+                                fileSelected = false
+                                break
+                            }
+                        }
+                        else if(condition[1] == "不符合") {
+                            if (file.basename.match(reg)) {
+                                fileSelected = false
+                                break
+                            }
                         }
                     }
-                    else if(condition[1] == "不包含") {
-                        if (md.hasTag(condition[2])) {
-                            fileSelected = false
-                            break
+                    else if (condition[0] == "文件路径") {
+                        var reg = new RegExp(condition[2]);
+                        if (condition[1] == "符合") {
+                            if (!file.path.match(reg)) {
+                                fileSelected = false
+                                break
+                            }
                         }
-                    }
-                }
-                else if (condition[0] == "文件名称") {
-                    var reg = new RegExp(condition[2]);
-                    if (condition[1] == "符合") {
-                        if (!file.basename.match(reg)) {
-                            fileSelected = false
-                            break
-                        }
-                    }
-                    else if(condition[1] == "不符合") {
-                        if (file.basename.match(reg)) {
-                            fileSelected = false
-                            break
-                        }
-                    }
-                }
-                else if (condition[0] == "文件路径") {
-                    var reg = new RegExp(condition[2]);
-                    if (condition[1] == "符合") {
-                        if (!file.path.match(reg)) {
-                            fileSelected = false
-                            break
-                        }
-                    }
-                    else if(condition[1] == "不符合") {
-                        if (file.path.match(reg)) {
-                            fileSelected = false
-                            break
+                        else if(condition[1] == "不符合") {
+                            if (file.path.match(reg)) {
+                                fileSelected = false
+                                break
+                            }
                         }
                     }
                 }
@@ -419,11 +433,28 @@ export class Search{
     getAllValuesOfAProperty(property: string):Array<string> {
         var valuesList = new Array();
         for (var file of this.app.vault.getMarkdownFiles()) {
-            var md = new MDIO(this.app, file.path) 
-            if (valuesList.indexOf(md.getPropertyValue(property)) == -1) {
-                valuesList.push(md.getPropertyValue(property))
+            // 如果不是忽略文件夹下的文件就可以继续
+            if (!this.isBannedFolder(file.path)) {
+                var md = new MDIO(this.app, file.path) 
+                if (valuesList.indexOf(md.getPropertyValue(property)) == -1) {
+                    valuesList.push(md.getPropertyValue(property))
+                }
             }
         }
         return valuesList
+    }
+
+    /**
+     * 检测是否为忽略文件夹下的文件
+     * @param path 
+     * @returns 
+     */
+    isBannedFolder(path: string) {
+        for (var folder of bannedFolder.split(',')) {
+            if(path.startsWith(folder)) {
+                return true
+            }
+        }
+        return false
     }
 }
