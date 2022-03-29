@@ -1,6 +1,6 @@
 import { Modal, App, TFile, Notice, MarkdownPostProcessorContext} from "obsidian";
 import { MDIO, Search } from "src/md";
-import { importantProp, bannedFolder} from "main";
+import { importantProp, hiddenPropInTable} from "main";
 import { table } from "console";
 
 export class Table {
@@ -17,14 +17,17 @@ export class Table {
         this.el = el;
         this.context = context;
 
-        // 解析代码块中的条件
+        // 解析代码块中的现实的条件
         var conditions: Array<Array<string>> = new Array()
         for (var line of this.source.split('\n')) {
             var subConditions = new Array()
-            for (var item of line.split(':')) {
-                subConditions.push(item)
+            // 开头为prop:的不是条件
+            if (!line.startsWith("prop:")) {
+                for (var item of line.split(':')) {
+                    subConditions.push(item)
+                }
+                conditions.push(subConditions)
             }
-            conditions.push(subConditions)
         }
         var search = new Search(this.app);
         var tfiles = search.getSelectedTFiles(conditions)
@@ -53,30 +56,61 @@ export class Table {
         var search = new Search(this.app);
 
         var headslist = search.getYamlPropertiesNameOfTfiles(tfiles)
-        headslist.unshift("文件")
 
-        this.setTh(headslist)
+        // 解析代码块中要显示的属性
+        var showPropsList: Array<string> = new Array()
+        var hasPropDisplayOption = false
+        for (var line of this.source.split('\n')) {
+            // 开头为prop:的不是条件
+            if (line.startsWith("prop:")) {
+                hasPropDisplayOption = true
+                for (var item of line.replace('prop:', '').split(',')) {
+                    showPropsList.push(item)
+                }
+                break
+            }
+        }
+        var newHeadsList = new Array()
+        if (hasPropDisplayOption) {
+            // 如果有prop，那么就按新的属性列表显示
+            for (var head of showPropsList) {
+                if (headslist.indexOf(head) != -1) {
+                    newHeadsList.push(head)
+                }
+            }
+        }
+        else {
+            // 没有prop就排除隐藏的属性后显示
+            for (var head of headslist) {
+                if (hiddenPropInTable.split(":").indexOf(head) == -1) {
+                    newHeadsList.push(head)
+                }
+            }
+        }
+        newHeadsList.unshift("文件")
 
+        this.setTh(newHeadsList)
+
+        // 添加新行，第一列为文件路径
         for (var file of tfiles) {
             var datalist = new Array()
-            for (var i=0; i<headslist.length; i++) {
+            for (var i=0; i<newHeadsList.length; i++) {
                 if (i == 0) {
                     datalist.push(file.path)
                 }
                 else {
                     var md = new MDIO(this.app, file.path)
-                    if (md.hasProperty(headslist[i])) {
-                        datalist.push(md.getPropertyValue(headslist[i]))
+                    if (md.hasProperty(newHeadsList[i])) {
+                        datalist.push(md.getPropertyValue(newHeadsList[i]))
                     }
                     else {
                         datalist.push("")
                     }
                 }
             }
-            this.addNewTr(headslist, datalist)
+            this.addNewTr(newHeadsList, datalist)
         }
 
-        // 添加新行，第一列为文件路径
         
     }
 
@@ -103,31 +137,45 @@ export class Table {
                 td.setAttrs({
                     'contenteditable': 'false',
                     "list": headslist[i],
-                    // "style": `widtr:${1/datalist.length}%`,
                 })
                 td.innerHTML = `<a class="internal-link" data-hredf="${datalist[i]}" href="${datalist[i]}" target="_blank" rel="noopener">${datalist[i].split('/').pop()}</a>`
             }
             else {
-                td.setAttrs({
-                    'contenteditable': 'true',
-                    "value": datalist[0],
-                    "list": headslist[i],
-                    // "style": `widtr:${1/datalist.length}%`,
-                })
+                // 重要属性不可编辑！！
+                if (importantProp.split(":").indexOf(headslist[i])==-1) {
+                    // 如果不是重要属性
+                    td.setAttrs({
+                        'contenteditable': 'true',
+                        "path": datalist[0],
+                        "value": datalist[i],
+                        "list": headslist[i],
+                    })
+                }
+                else{
+                    // 如果不是重要属性
+                    td.setAttrs({
+                        'contenteditable': 'false',
+                        "path": datalist[0],
+                        "value": datalist[i],
+                        "list": headslist[i],
+                    })
+                }
                 td.innerHTML = datalist[i]
             }
             
-
             var app = this.app
             td.onblur = function(this) {
-                var md = new MDIO(app, this.getAttr("value"))
-                // 有该属性则修改值
-                if (md.hasProperty(this.getAttr("list"))) {
-                    md.updatePropertyValue(this.getAttr("list"), this.innerHTML)
-                }
-                // 没有该属性则新建该属性并赋值
-                else {
-                    md.addProperty(this.getAttr("list"), this.innerHTML)
+                var md = new MDIO(app, this.getAttr("path"))
+                if (this.getAttr("value")!=this.innerHTML){
+                    this.setAttr("value", this.innerHTML)
+                    // 有该属性则修改值
+                    if (md.hasProperty(this.getAttr("list"))) {
+                        md.updatePropertyValue(this.getAttr("list"), this.innerHTML)
+                    }
+                    // 没有该属性则新建该属性并赋值
+                    else {
+                        md.addProperty(this.getAttr("list"), this.innerHTML)
+                    }
                 }
             }
             tr.appendChild(td)

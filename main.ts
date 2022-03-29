@@ -5,12 +5,14 @@ import { MainModal } from "src/modal";
 // 定义插件里需要保存、用到的变量
 interface MyPluginSettings {
 	importantProp: string;
+	hiddenPropInTable: string;
 	bannedFolder: string;
 }
 
 // 定义 DEFAULT_SETTINGS 并使用接口设置（DEFAULT_SETTINGS会在后边的插件主功能中的“loadSettings”（加载设置）中用到）
 const DEFAULT_SETTINGS: MyPluginSettings = {
 	importantProp: '',
+	hiddenPropInTable: '',
 	bannedFolder: ''
 }
 
@@ -30,14 +32,6 @@ export default class MyPlugin extends Plugin {
 			name: '打开操作面板',
 			callback: () => {
 				new MainModal(this.app).open();
-			}
-		});
-
-		// 命令：Table测试
-		this.addCommand({
-			id: 'yaml-bulk-edit-test',
-			name: '测试',
-			callback: () => {
 			}
 		});
 
@@ -62,6 +56,7 @@ export default class MyPlugin extends Plugin {
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 		importantProp = this.settings.importantProp;
+		hiddenPropInTable = this.settings.hiddenPropInTable;
 		bannedFolder = this.settings.bannedFolder;
 	}
 
@@ -94,7 +89,7 @@ class SettingTab extends PluginSettingTab {
 		// 新建一个设置选项
 		new Setting(containerEl)
 			.setName('禁止删除和修改的属性名称')
-			.setDesc('多个属性之间请以英文半角逗号`,`分隔')
+			.setDesc('多个属性之间请以英文半角冒号`:`分隔')
 			.addText(text => text
 				.setPlaceholder('Enter your secret')
 				.setValue(this.plugin.settings.importantProp)
@@ -103,12 +98,25 @@ class SettingTab extends PluginSettingTab {
 					importantProp = this.plugin.settings.importantProp
 					await this.plugin.saveSettings();
 				}));
+		
+		// 新建一个设置选项
+		new Setting(containerEl)
+			.setName('表格中隐藏的属性名称')
+			.setDesc('多个属性之间请以英文半角冒号`:`分隔。（注意: 如果您在yamledit中仍然选择显示某个被隐藏的属性的话, 那么该属性会被显示）')
+			.addText(text => text
+				.setPlaceholder('Enter your secret')
+				.setValue(this.plugin.settings.hiddenPropInTable)
+				.onChange(async (value) => {
+					this.plugin.settings.hiddenPropInTable = value;
+					hiddenPropInTable = this.plugin.settings.hiddenPropInTable
+					await this.plugin.saveSettings();
+				}));
 
 		
 		// 新建一个设置选项
 		new Setting(containerEl)
 			.setName('需要忽略的文件夹')
-			.setDesc('注意: 多个文件夹路径之间请以英文半角逗号`,`分隔, 路径开头不要加`/`。 例如: `资源/电影` 而不是 `/资源/电影`。 如果您的文件夹路径中含有英文半角逗号`,`, 则可能会导致一些错误。')
+			.setDesc('注意: 多个文件夹路径之间请以英文半角冒号`:`分隔, 路径开头不要加`/`。 例如: `资源/电影` 而不是 `/资源/电影`。 如果您的文件夹路径中含有英文半角逗号`,`, 则可能会导致一些错误。')
 			.addText(text => text
 				.setPlaceholder('Enter your secret')
 				.setValue(this.plugin.settings.bannedFolder)
@@ -122,4 +130,5 @@ class SettingTab extends PluginSettingTab {
 
 // 暴露
 export var importantProp: string
+export var hiddenPropInTable: string
 export var bannedFolder: string

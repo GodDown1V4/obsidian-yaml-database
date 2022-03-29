@@ -105,6 +105,7 @@ export class MDIO{
      *  2、删除属性 -> 无yaml退出/有yaml继续 -> 无属性则退出/有属性判断是否存在该属性且不为重要属性则删除
      *  3、修改属性名 -> 无yaml退出/有yaml继续 -> 无属性则退出/有属性判断是否存在该属性且不为重要属性则修改名称
      *  4、修改属性值 -> 无yaml退出/有yaml继续 -> 无属性则退出/有属性判断是否存在该属性且不为重要属性则修改值
+     *  5、删除整个YAML -> 无yaml退出/有yaml继续
      * ================================================================
      */
     /**
@@ -150,7 +151,7 @@ export class MDIO{
             // 是否存在该属性？且新属性名是否不存在？
             if (this.hasProperty(oldProperty) && !this.hasProperty(newProperty)) {
                 // 检测是否为禁止操作项？
-                if (importantProp.split(",").indexOf(oldProperty)==-1) {   // 不是禁止操作项
+                if (importantProp.split(":").indexOf(oldProperty)==-1) {   // 不是禁止操作项
                     this.app.vault.read(this.getTFile()).then(oldContent => {
                         var newContent = oldContent.replace(`\n${oldProperty}:`, `\n${newProperty}:`)
                         
@@ -167,7 +168,7 @@ export class MDIO{
             // 是否存在该属性？
             if (this.hasProperty(Property)) {
                 // 检测是否为禁止操作项？
-                if (importantProp.split(",").indexOf(Property)==-1) {   // 不是禁止操作项
+                if (importantProp.split(":").indexOf(Property)==-1) {   // 不是禁止操作项
                     this.app.vault.read(this.getTFile()).then(oldContent => {
                         // 找到Property的行号
                         var oldContentList = oldContent.split("\n");
@@ -200,7 +201,7 @@ export class MDIO{
             // 是否存在该属性？
             if (this.hasProperty(delProperty)) {
                 // 检测是否为禁止操作项？
-                if (importantProp.split(",").indexOf(delProperty)==-1) {   // 不是禁止操作项
+                if (importantProp.split(":").indexOf(delProperty)==-1) {   // 不是禁止操作项
                     this.app.vault.read(this.getTFile()).then(oldContent => {
                         // 找到delProperty的行号
                         var oldContentList = oldContent.split("\n");
@@ -232,9 +233,10 @@ export class MDIO{
         if(this.hasYaml()) {
             var canBeDeleted = true
             for (var propertyName of this.getPropertiesName()) {
-                if(importantProp.split(",").indexOf(propertyName)!=-1) {
+                if(importantProp.split(":").indexOf(propertyName)!=-1) {
                     canBeDeleted = false
                     console.log(`${this.path} 中包含禁止删除和修改的属性:${propertyName}, 所以无法对当前文档进行删除整个YAML的操作。`)
+                    break;
                 }
             }
             // 如果不包含重要属性就可以删除
@@ -255,6 +257,24 @@ export class MDIO{
                     this.write(newContent)
                 });
             }
+        }
+    }
+    // 清除值为空的属性
+    clearEmptyProps(){
+        if(this.hasYaml()) {
+            for (var propertyName of this.getPropertiesName()) {
+                if(!this.getPropertyValue(propertyName)) {
+                    // 空值属性
+                    console.log(propertyName)
+                    this.delProperty(propertyName)  // 删除函数会检测是否为重要属性
+                }
+            }
+            // 清除完空值属性后若当前文档中没有属性，则会删除yaml
+            setTimeout(() =>{
+                if (!this.getPropertiesName().length) {
+                    this.delTheWholeYaml()
+                }
+            }, 100)
         }
     }
     /**
@@ -465,7 +485,7 @@ export class Search{
      */
     isBannedFolder(path: string) {
         if (bannedFolder) {
-            for (var folder of bannedFolder.split(',')) {
+            for (var folder of bannedFolder.split(':')) {
                 if(path.startsWith(folder)) {
                     return true
                 }

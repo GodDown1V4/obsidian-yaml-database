@@ -43,3 +43,14 @@ button.kanbanMOC:hover {
 	box-shadow: 0 4px 4px var(--button-box-shadow, rgba(210, 210, 210, 0.25)), 0 10px 10px var(--button-box-shadow, rgba(210, 210, 210, 0.22));
 	transform: translate3d(0px, -1.5px, 0px);
 }
+
+body .block-language-yamledit >div
+{
+  width: calc(100% - 5px);
+  margin: 0;
+  overflow-x: auto; 
+  white-space: nowrap;
+  overflow: visible;
+  margin: auto;
+  box-shadow:none;
+}

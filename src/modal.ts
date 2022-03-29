@@ -1,6 +1,6 @@
 import { Modal, App, TFile, Notice } from "obsidian";
 import { MDIO, Search } from "src/md";
-import { importantProp, bannedFolder} from "main";
+import { importantProp } from "main";
 
 var conditionNameCount = 0;
 /**
@@ -127,6 +127,12 @@ export class SelectedFileModal extends Modal{
 			}
 		})
         button5.setText("删除整个YAML(❗危险操作☠️)")
+        var button6 = contentEl.createEl("button", {
+			'attr': {
+				"class": "kanbanMOC",
+			}
+		})
+        button6.setText("清理空值属性(❗危险操作☠️)")
 
         // 展示搜索到的文档
         
@@ -188,6 +194,10 @@ export class SelectedFileModal extends Modal{
             var finallTfiles = modal.getCheckedTfiles(tfiles, checkBoxesList)
             new OperationModal(app, "删除整个YAML", finallTfiles).open()
         }
+        button6.onclick = function() {
+            var finallTfiles = modal.getCheckedTfiles(tfiles, checkBoxesList)
+            new OperationModal(app, "清理空值属性", finallTfiles).open()
+        }
 
     }
 
@@ -231,6 +241,7 @@ export class SelectedFileModal extends Modal{
             case "修改属性值": this.updatePropertyValue(); break;
             case "删除属性": this.delProperty(); break;
             case "删除整个YAML": this.delYAML(); break;
+            case "清理空值属性": this.clearEmptyProps(); break;
             default: break;
         }
     }
@@ -423,7 +434,7 @@ export class SelectedFileModal extends Modal{
 		})
         // 处理提交
         form.onsubmit = function() {
-            if (importantProp.split(",").indexOf(input1.value)==-1) {
+            if (importantProp.split(":").indexOf(input1.value)==-1) {
                 for (var file of tfiles) {
                     var md = new MDIO(app, file.path)
                     md.delProperty(input1.value);
@@ -536,7 +547,7 @@ export class SelectedFileModal extends Modal{
 		})
         // 处理提交
         form.onsubmit = function() {
-            if (importantProp.split(",").indexOf(input1.value)==-1) {
+            if (importantProp.split("").indexOf(input1.value)==-1) {
                 if (input2.value) {
                     for (var file of tfiles) {
                         var md = new MDIO(app, file.path)
@@ -723,6 +734,62 @@ export class SelectedFileModal extends Modal{
                     button.click();
                 }, 100)
             }
+        }
+
+    }
+
+    clearEmptyProps() {
+        var modal = this
+        var app = this.app
+        var tfiles = this.tfiles
+
+		const title = this.titleEl
+		title.setText("清理空值属性(❗危险操作☠️)");
+
+		const {contentEl} = this;
+		
+        // 展示属性按钮
+        var button = contentEl.createEl("button", {
+			'attr': {
+				"class": "kanbanMOC",
+			}
+		})
+        button.setText("这些文件包含的属性(刷新)")
+
+        // 展示已有属性
+		var property = contentEl.createEl("ul")
+        // 更新属性值
+        button.onclick = function() {
+            property.empty()
+            for (var name of modal.getPropertiesNameOfTflies(tfiles)) {
+                var li = document.createElement('li');
+                li.innerHTML = name;
+                property.appendChild(li)
+            }
+        }
+        setTimeout(() =>{
+            button.click();
+        }, 100)
+        
+        // 介绍
+		contentEl.createDiv().innerHTML = "此处清理空值属性只会对选中文档的那些非重要且值为空的属性进行操作, 如果您所选中文档中的的某个非重要属性只有空格, 那么执行此操作也会将其清除"
+        
+        // 删除确认按钮
+        var button2 = contentEl.createEl("button", {
+			'attr': {
+				"class": "kanbanMOC",
+			}
+		})
+        button2.setText("确认删除(❗危险操作☠️)")
+        // 处理提交
+        button2.onclick = function() {
+            for (var file of tfiles) {
+                var md = new MDIO(app, file.path)
+                md.clearEmptyProps();
+            }
+            setTimeout(() =>{
+                button.click();
+            }, 100)
         }
 
     }
