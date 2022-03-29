@@ -333,6 +333,21 @@ export class Search{
         }
         return yamlPropertiesName
     }
+
+    getYamlPropertiesNameOfTfiles(tflies: Array<TFile>):Array<string> {
+        var yamlPropertiesName = new Array();
+        for (var file of tflies) {
+            // 如果不是忽略文件夹下的文件就可以继续
+            if (!this.isBannedFolder(file.path)) {
+                for (var propertyName of new MDIO(this.app, file.path).getPropertiesName()) {
+                    if (yamlPropertiesName.indexOf(propertyName) == -1) {
+                        yamlPropertiesName.push(propertyName)
+                    }
+                }
+            }
+        }
+        return yamlPropertiesName
+    }
     
     /**
      * 根据面板①的条件筛选文档
@@ -451,7 +466,6 @@ export class Search{
     isBannedFolder(path: string) {
         if (bannedFolder) {
             for (var folder of bannedFolder.split(',')) {
-                console.log(folder)
                 if(path.startsWith(folder)) {
                     return true
                 }

@@ -1,4 +1,5 @@
-import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { Table } from 'src/table';
+import { App, MarkdownPostProcessorContext, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { MainModal } from "src/modal";
 
 // 定义插件里需要保存、用到的变量
@@ -31,6 +32,25 @@ export default class MyPlugin extends Plugin {
 				new MainModal(this.app).open();
 			}
 		});
+
+		// 命令：Table测试
+		this.addCommand({
+			id: 'yaml-bulk-edit-test',
+			name: '测试',
+			callback: () => {
+			}
+		});
+
+		this.registerMarkdownCodeBlockProcessor(
+			'yamledit',
+			(
+				source: string,
+				el: HTMLElement,
+				context: MarkdownPostProcessorContext
+			) => {
+				new Table(this.app, source, el, context);
+			}
+		)
 	}
 
 	// 卸载插件
