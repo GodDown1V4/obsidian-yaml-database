@@ -21,7 +21,7 @@
 
 这个插件是即可以批量编辑obsidian中文档的yaml，也可以表格编辑的形式来编辑某个文档的某个yaml。
 
-- 批量编辑YAML：<img src="https://user-images.githubusercontent.com/39726621/160730190-85380500-7e90-4f3c-ac01-7061f9a04466.png" alt="image" style="zoom:50%;" />
+- 批量编辑YAML：<img src="https://user-images.githubusercontent.com/39726621/160730190-85380500-7e90-4f3c-ac01-7061f9a04466.png" alt="image" width="500px" />
 - 表格编辑YAML：![20220329_193316 mp4_20220330_085632](https://user-images.githubusercontent.com/39726621/160730119-ec395e47-ca83-4d82-b446-feaca0002d5d.gif)
 
 
@@ -70,20 +70,20 @@
    3. `标签`——`包含/不包含`——`标签名`
    4. `文件名称`——`符合/不符合`——`正则表达式`
    5. `文件路径`——`符合/不符合`——`正则表达式`
-   <img src="https://user-images.githubusercontent.com/39726621/160273310-6ac1ec25-ee74-430e-bc2d-901ca57b047d.png" alt="image" style="zoom: 40%;" />
+   <img src="https://user-images.githubusercontent.com/39726621/160273310-6ac1ec25-ee74-430e-bc2d-901ca57b047d.png" alt="image" width="500px" />
 3. 点击确定后进入到**面板②**，这里会展示筛选的文档，当您确认文档符合要求后可选择具体操作进行下一步（如果发现显示的文档并不符合您的预期要求，那么您可以进一步选择或者关闭当前面板回到面板①重新设置条件）。可选择的操作有：
    1. `添加新属性`
    2. `修改属性名`
    3. `修改属性值`
    4. `删除属性`
    5. `删除整个YAML`
-   <img src="https://user-images.githubusercontent.com/39726621/160343219-2af7c4eb-143b-4d08-bbc1-cc2c636437e7.png" alt="image" style="zoom:40%;" />
+   <img src="https://user-images.githubusercontent.com/39726621/160343219-2af7c4eb-143b-4d08-bbc1-cc2c636437e7.png" alt="image" width="500px" />
 4. 点击具体操作后进入到**面板③**，在这里输入值来进行最后一步的操作。请谨慎操作！！确认输入无误后点击确定即可提交。
-<img src="https://user-images.githubusercontent.com/39726621/160273284-614702eb-bc59-4dfc-937a-3f55a799c1e0.png" alt="image" style="zoom:40%;" />
+<img src="https://user-images.githubusercontent.com/39726621/160273284-614702eb-bc59-4dfc-937a-3f55a799c1e0.png" alt="image" width="500px" />
 5. 到这里就完成批量修改操作了。
 6. 批量编辑设置项
-   1. `禁止删除和修改的名称属性`：对于十分重要的yaml属性值，为了避免对这些重要的属性值造成误删、误改，可以将他们添加到此。（一行一个属性，多个属性请换行）<img src="https://user-images.githubusercontent.com/39726621/160730853-8372818b-8bcc-4f66-afa7-af71987895fb.png" alt="image" style="zoom: 50%;" />
-   2. `忽略的文件或文件夹路径`：输入基于库的路径，路径开头不要加`/`，（一行一个路径，多个路径请换行）<img src="https://user-images.githubusercontent.com/39726621/160730894-f701ee0a-775a-47ad-8ac9-292885251f32.png" alt="image" style="zoom:50%;" />
+   1. `禁止删除和修改的名称属性`：对于十分重要的yaml属性值，为了避免对这些重要的属性值造成误删、误改，可以将他们添加到此。（一行一个属性，多个属性请换行）<img src="https://user-images.githubusercontent.com/39726621/160730853-8372818b-8bcc-4f66-afa7-af71987895fb.png" alt="image" width="500px" />
+   2. `忽略的文件或文件夹路径`：输入基于库的路径，路径开头不要加`/`，（一行一个路径，多个路径请换行）<img src="https://user-images.githubusercontent.com/39726621/160730894-f701ee0a-775a-47ad-8ac9-292885251f32.png" alt="image" width="500px" />
 
 ## 表格编辑YAML：具体操作
 
@@ -106,8 +106,8 @@
 2. 操作表格编辑属性
    1. 当您操作表格的某个单元格且输入改变值时，若该单元格所对应的文档没有该单元格所对应的属性，那么插件会自动为该文档创建该属性
 3. 表格编辑设置项：
-   1. `禁止修改的属性名称`：在这里输入您想要禁止在表格中编辑的YAML属性。（一行一个属性，多个属性请换行）<img src="https://user-images.githubusercontent.com/39726621/160731083-e1e18e2d-3757-4b91-bd69-22bd19eec50c.png" alt="image" style="zoom:50%;" />
-   2. `隐藏的属性名称`，在这里输入您想要默认隐藏的属性。（一行一个属性，多个属性请换行）（如果您在代码块中`prop:`输入的要显示的属性中包含表格中隐藏的属性，那么该属性仍会被显示。换句话说，这个选项只在你的代码块中没有`prop:`参数时起作用）<img src="https://user-images.githubusercontent.com/39726621/160731246-a43163f1-a0fe-4d6c-aa13-f48dc2295168.png" alt="image" style="zoom:50%;" />
+   1. `禁止修改的属性名称`：在这里输入您想要禁止在表格中编辑的YAML属性。（一行一个属性，多个属性请换行）<img src="https://user-images.githubusercontent.com/39726621/160731083-e1e18e2d-3757-4b91-bd69-22bd19eec50c.png" alt="image" width="500px" />
+   2. `隐藏的属性名称`，在这里输入您想要默认隐藏的属性。（一行一个属性，多个属性请换行）（如果您在代码块中`prop:`输入的要显示的属性中包含表格中隐藏的属性，那么该属性仍会被显示。换句话说，这个选项只在你的代码块中没有`prop:`参数时起作用）<img src="https://user-images.githubusercontent.com/39726621/160731246-a43163f1-a0fe-4d6c-aa13-f48dc2295168.png" alt="image" width="500px" />
 
 
 ### 代码示例
