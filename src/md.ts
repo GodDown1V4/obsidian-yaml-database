@@ -89,18 +89,20 @@ export class MDIO{
         return false
     }
 
-    getPropertyValue(property: string):string {
+    getPropertyValue(property: string) {
+        var result = ""
         if (this.hasYaml()) {
             if (this.hasProperty(property)) {
-                var result = this.getFrontmatter()[property]
-                if (result instanceof Array) {
-                    return result.toString()
+                var value = this.getFrontmatter()[property]
+                if (value instanceof Array) {
+                    result = value.toString()
                 }
                 else {
-                    return result
+                    result = value
                 }
             }
         }
+        return result
     }
 
     /**
