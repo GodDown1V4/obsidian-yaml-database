@@ -137,7 +137,7 @@ export class Table {
                     'contenteditable': 'false',
                     "list": headslist[i],
                 })
-                td.innerHTML = `<a class="internal-link" data-hredf="${datalist[i]}" href="${datalist[i]}" target="_blank" rel="noopener">${datalist[i].split('/').pop()}</a>`
+                td.innerHTML = `<a class="internal-link" data-hredf="${datalist[i]}" href="${datalist[i]}" target="_blank" rel="noopener">${datalist[i].split('/').pop().replace(".md", "")}</a>`
             }
             else {
                 // 重要属性不可编辑！！
