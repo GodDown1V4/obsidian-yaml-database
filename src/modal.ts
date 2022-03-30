@@ -1,7 +1,7 @@
 import { Modal, App, TFile, Notice } from "obsidian";
 import { MDIO, Search } from "src/md";
-import { importantProp } from "main";
-
+import { bannedProp } from "main";
+ 
 var conditionNameCount = 0;
 /**
  * 1、主面板
@@ -434,7 +434,7 @@ export class SelectedFileModal extends Modal{
 		})
         // 处理提交
         form.onsubmit = function() {
-            if (importantProp.split(":").indexOf(input1.value)==-1) {
+            if (bannedProp.split("\n").indexOf(input1.value)==-1) {
                 for (var file of tfiles) {
                     var md = new MDIO(app, file.path)
                     md.delProperty(input1.value);
@@ -547,7 +547,7 @@ export class SelectedFileModal extends Modal{
 		})
         // 处理提交
         form.onsubmit = function() {
-            if (importantProp.split("").indexOf(input1.value)==-1) {
+            if (bannedProp.split("\n").indexOf(input1.value)==-1) {
                 if (input2.value) {
                     for (var file of tfiles) {
                         var md = new MDIO(app, file.path)
@@ -664,7 +664,7 @@ export class SelectedFileModal extends Modal{
 		})
         // 处理提交
         form.onsubmit = function() {
-            if (importantProp.split(",").indexOf(input1.value)==-1) {
+            if (bannedProp.split("\n").indexOf(input1.value)==-1) {
                 for (var file of tfiles) {
                     var md = new MDIO(app, file.path)
                     md.updatePropertyValue(input1.value, input2.value);

@@ -1,5 +1,5 @@
 import { App, FrontMatterCache, Notice, TFile } from "obsidian";
-import { importantProp, bannedFolder } from "main";
+import { bannedProp, bannedFolder, bannedPropInTable } from "main";
 
 export class MDIO{
     app:App;
@@ -92,7 +92,13 @@ export class MDIO{
     getPropertyValue(property: string):string {
         if (this.hasYaml()) {
             if (this.hasProperty(property)) {
-                return this.getFrontmatter()[property]
+                var result = this.getFrontmatter()[property]
+                if (result instanceof Array) {
+                    return result.toString()
+                }
+                else {
+                    return result
+                }
             }
         }
     }
@@ -151,10 +157,44 @@ export class MDIO{
             // 是否存在该属性？且新属性名是否不存在？
             if (this.hasProperty(oldProperty) && !this.hasProperty(newProperty)) {
                 // 检测是否为禁止操作项？
-                if (importantProp.split(":").indexOf(oldProperty)==-1) {   // 不是禁止操作项
+                if (bannedProp.split("\n").indexOf(oldProperty)==-1) {   // 不是禁止操作项
                     this.app.vault.read(this.getTFile()).then(oldContent => {
                         var newContent = oldContent.replace(`\n${oldProperty}:`, `\n${newProperty}:`)
                         
+                        // 写入
+                        this.write(newContent)
+                    });
+                }
+            }
+        }
+	}
+    
+    // 表格更改属性值
+	tableUpdateProperty(Property:string, newValue:string) {
+        if (this.hasYaml()) {
+            // 是否存在该属性？
+            if (this.hasProperty(Property)) {
+                // 检测是否为禁止操作项？
+                if (bannedPropInTable.split("\n").indexOf(Property)==-1) {   // 不是禁止操作项
+                    this.app.vault.read(this.getTFile()).then(oldContent => {
+                        // 找到Property的行号
+                        var oldContentList = oldContent.split("\n");
+                        var lineNo = 0;
+                        for (var line of oldContentList) {
+                            lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
+                            // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
+                            if (line.startsWith(Property)) {
+                                break;
+                            }
+                        }
+        
+                        // 修改属性值
+                        oldContentList.splice(lineNo-1, 1, `${Property}: ${newValue}`)
+                        var newContent = "";
+                        for (var line of oldContentList) {
+                            newContent = newContent + line + "\n";
+                        }
+        
                         // 写入
                         this.write(newContent)
                     });
@@ -168,7 +208,7 @@ export class MDIO{
             // 是否存在该属性？
             if (this.hasProperty(Property)) {
                 // 检测是否为禁止操作项？
-                if (importantProp.split(":").indexOf(Property)==-1) {   // 不是禁止操作项
+                if (bannedProp.split("\n").indexOf(Property)==-1) {   // 不是禁止操作项
                     this.app.vault.read(this.getTFile()).then(oldContent => {
                         // 找到Property的行号
                         var oldContentList = oldContent.split("\n");
@@ -201,7 +241,7 @@ export class MDIO{
             // 是否存在该属性？
             if (this.hasProperty(delProperty)) {
                 // 检测是否为禁止操作项？
-                if (importantProp.split(":").indexOf(delProperty)==-1) {   // 不是禁止操作项
+                if (bannedProp.split("\n").indexOf(delProperty)==-1) {   // 不是禁止操作项
                     this.app.vault.read(this.getTFile()).then(oldContent => {
                         // 找到delProperty的行号
                         var oldContentList = oldContent.split("\n");
@@ -233,7 +273,7 @@ export class MDIO{
         if(this.hasYaml()) {
             var canBeDeleted = true
             for (var propertyName of this.getPropertiesName()) {
-                if(importantProp.split(":").indexOf(propertyName)!=-1) {
+                if(bannedProp.split("\n").indexOf(propertyName)!=-1) {
                     canBeDeleted = false
                     console.log(`${this.path} 中包含禁止删除和修改的属性:${propertyName}, 所以无法对当前文档进行删除整个YAML的操作。`)
                     break;
@@ -265,7 +305,7 @@ export class MDIO{
             for (var propertyName of this.getPropertiesName()) {
                 if(!this.getPropertyValue(propertyName)) {
                     // 空值属性
-                    console.log(propertyName)
+                    // console.log(propertyName)
                     this.delProperty(propertyName)  // 删除函数会检测是否为重要属性
                 }
             }
@@ -289,14 +329,17 @@ export class MDIO{
      * @returns 
      */
     hasTag(TagName: string) {
-        var cache = this.app.metadataCache.getCache(this.path);
-        if (cache.hasOwnProperty("tags")) {
-            for (var item of cache["tags"]) {
-                if (item.tag == `#${TagName}`) {
-                    return true
-                }
-            }
+        if (this.getTagsName().indexOf(TagName) != -1) {
+            return true
         }
+        // var cache = this.app.metadataCache.getCache(this.path);
+        // if (cache.hasOwnProperty("tags")) {
+        //     for (var item of cache["tags"]) {
+        //         if (item.tag == `#${TagName}`) {
+        //             return true
+        //         }
+        //     }
+        // }
         return false
     }
 
@@ -306,6 +349,21 @@ export class MDIO{
         if (cache.hasOwnProperty("tags")) {
             for (var item of cache["tags"]) {
                 var tag = item.tag.replace("#", "")
+                if (nameList.indexOf(tag)==-1) {
+                    nameList.push(tag)
+                }
+            }
+        }
+        // 获取yaml中的tags、tag
+        var tags = ""
+        if (this.hasProperty("tags")) {
+            tags = this.getPropertyValue("tags").replace(/\s/g, "")
+        }
+        else if(this.hasProperty("tag")) {
+            tags = this.getPropertyValue("tag").replace(/\s/g, "")
+        }
+        if (tags) {
+            for (var tag of tags.split(',')){
                 if (nameList.indexOf(tag)==-1) {
                     nameList.push(tag)
                 }
@@ -485,7 +543,7 @@ export class Search{
      */
     isBannedFolder(path: string) {
         if (bannedFolder) {
-            for (var folder of bannedFolder.split(':')) {
+            for (var folder of bannedFolder.split('\n')) {
                 if(path.startsWith(folder)) {
                     return true
                 }

@@ -1,7 +1,6 @@
 import { Modal, App, TFile, Notice, MarkdownPostProcessorContext} from "obsidian";
 import { MDIO, Search } from "src/md";
-import { importantProp, hiddenPropInTable} from "main";
-import { table } from "console";
+import { bannedPropInTable, hiddenPropInTable} from "main";
 
 export class Table {
     app: App;
@@ -82,7 +81,7 @@ export class Table {
         else {
             // 没有prop就排除隐藏的属性后显示
             for (var head of headslist) {
-                if (hiddenPropInTable.split(":").indexOf(head) == -1) {
+                if (hiddenPropInTable.split("\n").indexOf(head) == -1) {
                     newHeadsList.push(head)
                 }
             }
@@ -142,7 +141,7 @@ export class Table {
             }
             else {
                 // 重要属性不可编辑！！
-                if (importantProp.split(":").indexOf(headslist[i])==-1) {
+                if (bannedPropInTable.split("\n").indexOf(headslist[i])==-1) {
                     // 如果不是重要属性
                     td.setAttrs({
                         'contenteditable': 'true',
@@ -167,10 +166,10 @@ export class Table {
             td.onblur = function(this) {
                 var md = new MDIO(app, this.getAttr("path"))
                 if (this.getAttr("value")!=this.innerHTML){
-                    this.setAttr("value", this.innerHTML)
+                    this.setAttr("value", this.innerHTML)   
                     // 有该属性则修改值
                     if (md.hasProperty(this.getAttr("list"))) {
-                        md.updatePropertyValue(this.getAttr("list"), this.innerHTML)
+                        md.tableUpdateProperty(this.getAttr("list"), this.innerHTML)
                     }
                     // 没有该属性则新建该属性并赋值
                     else {

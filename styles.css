@@ -54,3 +54,7 @@ body .block-language-yamledit >div
   margin: auto;
   box-shadow:none;
 }
+
+.modal-container .modal-content textarea {
+	height: 18rem !important;
+  }

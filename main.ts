@@ -7,13 +7,15 @@ interface MyPluginSettings {
 	importantProp: string;
 	hiddenPropInTable: string;
 	bannedFolder: string;
+	bannedPropInTable: string;
 }
 
 // 定义 DEFAULT_SETTINGS 并使用接口设置（DEFAULT_SETTINGS会在后边的插件主功能中的“loadSettings”（加载设置）中用到）
 const DEFAULT_SETTINGS: MyPluginSettings = {
 	importantProp: '',
 	hiddenPropInTable: '',
-	bannedFolder: ''
+	bannedFolder: '',
+	bannedPropInTable: '',
 }
 
 
@@ -55,9 +57,10 @@ export default class MyPlugin extends Plugin {
 	// 异步：加载设置
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-		importantProp = this.settings.importantProp;
+		bannedProp = this.settings.importantProp;
 		hiddenPropInTable = this.settings.hiddenPropInTable;
 		bannedFolder = this.settings.bannedFolder;
+		bannedPropInTable = this.settings.bannedPropInTable;
 	}
 
 	// 异步：保存设置
@@ -82,53 +85,71 @@ class SettingTab extends PluginSettingTab {
 
 		// 新建一个h2元素当标题
 		containerEl.createEl('h2', {text: 'Yaml批量修改'});
-
 		
-		containerEl.createEl("div", {text: '请做好备份！！使用此插件造成的任何数据损失本人概不负责。'});
+		containerEl.createEl("a", {text: "帮助文档见Github", attr: {"href": "https://github.com/1657744680/obsidian-yaml-bulk-edit"}})
+		containerEl.createEl("div", {text: '由于涉及到对文档进行批量操作，所以请一定做好备份！！使用此插件造成的任何数据损失本人概不负责。'});
+		containerEl.createEl("div", {text: '目前仅支持对yaml中单行的属性进行操作。'});
+
+		containerEl.createEl('h3', {text: '批量修改设置'});
 
 		// 新建一个设置选项
 		new Setting(containerEl)
 			.setName('禁止删除和修改的属性名称')
-			.setDesc('多个属性之间请以英文半角冒号`:`分隔')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
+			.setDesc('一个属性占一行, 添加新的参数就换一行。（注意: 批量编辑中禁止操作的属性若未在表格中被禁止, 则依然可以在表格中进行编辑）（不要写多余的空格）')
+			.addTextArea(text => text
+				.setPlaceholder('请输入')
 				.setValue(this.plugin.settings.importantProp)
 				.onChange(async (value) => {
 					this.plugin.settings.importantProp = value;
-					importantProp = this.plugin.settings.importantProp
-					await this.plugin.saveSettings();
-				}));
-		
-		// 新建一个设置选项
-		new Setting(containerEl)
-			.setName('表格中隐藏的属性名称')
-			.setDesc('多个属性之间请以英文半角冒号`:`分隔。（注意: 如果您在yamledit中仍然选择显示某个被隐藏的属性的话, 那么该属性会被显示）')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.hiddenPropInTable)
-				.onChange(async (value) => {
-					this.plugin.settings.hiddenPropInTable = value;
-					hiddenPropInTable = this.plugin.settings.hiddenPropInTable
+					bannedProp = this.plugin.settings.importantProp
 					await this.plugin.saveSettings();
 				}));
 
 		
 		// 新建一个设置选项
 		new Setting(containerEl)
-			.setName('需要忽略的文件夹')
-			.setDesc('注意: 多个文件夹路径之间请以英文半角冒号`:`分隔, 路径开头不要加`/`。 例如: `资源/电影` 而不是 `/资源/电影`。 如果您的文件夹路径中含有英文半角逗号`,`, 则可能会导致一些错误。')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
+			.setName('忽略的文件或文件夹路径')
+			.setDesc('一个路径占一行, 添加新的参数就换一行。（注意: 路径开头不要加`/`。 例如: `资源/电影` 而不是 `/资源/电影`。）（不要写多余的空格）')
+			.addTextArea(text => text
+				.setPlaceholder('请输入')
 				.setValue(this.plugin.settings.bannedFolder)
 				.onChange(async (value) => {
 					this.plugin.settings.bannedFolder = value;
 					bannedFolder = this.plugin.settings.bannedFolder
 					await this.plugin.saveSettings();
 				}));
+
+		containerEl.createEl('h3', {text: '表格编辑设置'});
+		
+		// 新建一个设置选项
+		new Setting(containerEl)
+		.setName('禁止修改的属性名称')
+		.setDesc('一个属性占一行, 添加新的参数就换一行。（不要写多余的空格）')
+		.addTextArea(text => text
+			.setPlaceholder('请输入')
+			.setValue(this.plugin.settings.bannedPropInTable)
+			.onChange(async (value) => {
+				this.plugin.settings.bannedPropInTable = value;
+				bannedPropInTable = this.plugin.settings.bannedPropInTable
+				await this.plugin.saveSettings();
+			}));
+		new Setting(containerEl)
+			.setName('隐藏的属性名称')
+			.setDesc('一个属性占一行, 添加新的参数就换一行。（注意: 如果您在yamledit中仍然选择显示某个被隐藏的属性的话, 那么该属性会被显示）（不要写多余的空格）')
+			.addTextArea(text => text
+				
+				.setPlaceholder('请输入')
+				.setValue(this.plugin.settings.hiddenPropInTable)
+				.onChange(async (value) => {
+					this.plugin.settings.hiddenPropInTable = value;
+					hiddenPropInTable = this.plugin.settings.hiddenPropInTable
+					await this.plugin.saveSettings();
+				}));
 	}
 }
 
 // 暴露
-export var importantProp: string
-export var hiddenPropInTable: string
+export var bannedProp: string
 export var bannedFolder: string
+export var bannedPropInTable: string
+export var hiddenPropInTable: string
