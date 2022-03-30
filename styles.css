@@ -44,17 +44,54 @@ button.kanbanMOC:hover {
 	transform: translate3d(0px, -1.5px, 0px);
 }
 
-body .block-language-yamledit >div
-{
-  width: calc(100% - 5px);
-  margin: 0;
-  overflow-x: auto; 
-  white-space: nowrap;
-  overflow: visible;
-  margin: auto;
-  box-shadow:none;
-}
 
 .modal-container .modal-content textarea {
 	height: 18rem !important;
   }
+
+ 
+.block-language-yamledit>div>table{
+	overflow :auto;
+	box-shadow:none;
+	}
+  
+.block-language-yamledit>div>table  tr th:first-child, 
+.block-language-yamledit>div>table  tr td:first-child {
+	  word-break: break-all;
+	  width: 12em;
+	  min-width: 12em;
+	  max-width: 18em;
+	  text-align: left;
+	  }
+	  
+.block-language-yamledit>div>table  tr th:not(first-child), 
+.block-language-yamledit>div>table  tr td:not(first-child) {
+	  word-break: break-all;
+	  width: 8em;
+	  min-width: 8em;
+	  max-width: 10em;
+	  text-align: center;
+	  }
+  
+.block-language-yamledit th {	
+	  border-bottom:1px solid var(--background-secondary);
+	  padding: 8px;
+  }
+.block-language-yamledit td {	
+	  font-size:13px;
+	  line-height:1.2;
+	  padding: 8px;
+  }
+.block-language-yamledit table  > tr {
+	  border-bottom: 1px solid #ccccccad;
+  }
+.block-language-yamledit table  > tr:last-child > td {
+	  border-bottom: 2px solid #b3b3b3;
+  }
+.block-language-yamledit  tr:hover td {
+	  background-color: var(--interactive-hover);
+	  color: #4d4d4d;
+  }
+  
+   
+ 
