@@ -8,7 +8,7 @@ export class Table {
     el: HTMLElement;
     context: MarkdownPostProcessorContext;
     table: HTMLTableElement;
-
+    search: HTMLInputElement;
 
     constructor(app: App,source: string, el: HTMLElement, context: MarkdownPostProcessorContext) {
         this.app = app;
@@ -16,48 +16,138 @@ export class Table {
         this.el = el;
         this.context = context;
 
+        var divOperate = el.createDiv({
+            attr: {
+                "class": "tableOpreate"
+            }
+        }) // 操作区域
+        var divTable = el.createDiv()   // 表格区域
+        var superThis = this
+
+        // 1、刷新按钮
+        var buttonFresh = divOperate.createEl("button")
+        buttonFresh.innerHTML = "刷新"
+        buttonFresh.onclick = function(this, evt) {
+            // 重新渲染表格
+            divTable.empty()
+            superThis.renderTable()
+            divTable.appendChild(superThis.table)
+        }
+
+        // 2、搜索框
+        this.search = divOperate.createEl("input", {
+            attr: {
+                "type": "search"
+            }
+        })
+
+        this.search.placeholder = "搜索..."
+        this.search.onkeyup = function(this, evt) {
+            if (evt.key == "Enter") {
+                // 重新渲染表格
+                divTable.empty()
+                superThis.renderTable()
+                divTable.appendChild(superThis.table)
+            }
+        }
 
         // 渲染表格
         this.renderTable()
-
-        el.appendChild(this.table)
+        divTable.appendChild(this.table)
     }
 
-    parseProp(tfiles: Array<TFile>): Array<string> {// 解析代码块中要显示的属性
+    /**
+     * 解析属性
+     *  1、只有属性：`prop:属性名1,属性名2`
+     *  2、有属性和显示名称：`prop:属性名1:name.显示1,属性名2`
+     *  3、有属性和属性类型：`prop:属性名1:type.类型名,属性名2`
+     *  4、有属性和显示名称以及属性类型：`prop:属性名1:name.显示1:type.属性名,属性名2:type.属性名:name.显示2`
+     * @param tfiles 
+     * @returns [["文件", "文件", "text"], ["属性", "name(默认为属性本身名)", "type(默认为text)"],……]
+     */
+    parseProp(tfiles: Array<TFile>): Array<Array<string>> {// 解析代码块中要显示的属性
         // 设置题头，按顺序依次为：文件名、属性1、属性2、……
         var search = new Search(this.app);
 
+        // 允许的属性类型，若不满足则设为默认类型text
+        var admittedType = [
+            "text",
+            "number",
+            "date",
+            "time",
+            "checkbox",
+            "img",
+        ]
+
         var headslist = search.getYamlPropertiesNameOfTfiles(tfiles)
-        var showPropsList: Array<string> = new Array()
+        // 判断是否有prop选项
+        var showPropsList:Array<Array<string>> = new Array()
         var hasPropDisplayOption = false
         for (var line of this.source.split('\n')) {
             // 开头为prop:的不是条件
             if (line.startsWith("prop:")) {
                 hasPropDisplayOption = true
                 for (var item of line.replace('prop:', '').split(',')) {
-                    showPropsList.push(item)
+                    var buffer:Array<string> = item.split(":")
+                    // 默认属性显示名称及类型
+                    var propItem: Array<string> = [buffer[0], buffer[0] , "text"]
+                    switch (buffer.length) {
+                        case 2: {
+                            if (buffer[1].startsWith("name.")) {     // 开头为name
+                                propItem[1] = buffer[1].replace("name.", "");
+                            }
+                            else if (buffer[1].startsWith("type.")) {    // 开头为type
+                                if (admittedType.indexOf(buffer[1].replace("type.", "")) != -1) {
+                                    propItem[2] = buffer[1].replace("type.", "");
+                                }
+                            }
+                        }break;
+                        case 3: {
+                            if (buffer[1].startsWith("name.")) {     // 1开头为name
+                                propItem[1] = buffer[1].replace("name.", "");
+                            }
+                            else if (buffer[1].startsWith("type.")) {    // 1开头为type
+                                if (admittedType.indexOf(buffer[1].replace("type.", "")) != -1) {
+                                    propItem[2] = buffer[1].replace("type.", "");
+                                }
+                            }
+
+                            if (buffer[2].startsWith("name.")) {     // 2开头为name
+                                propItem[1] = buffer[2].replace("name.", "");
+                            }
+                            else if (buffer[2].startsWith("type.")) {    // 2开头为type
+                                if (admittedType.indexOf(buffer[2].replace("type.", "")) != -1) {
+                                    propItem[2] = buffer[2].replace("type.", "");
+                                }
+                            }
+                            
+                        }break;
+                        default: break;
+                        
+                    }
+                    showPropsList.push(propItem) 
                 }
                 break
             }
         }
-        var newHeadsList = new Array()
+        var newHeadsList:Array<Array<string>> = new Array()
         if (hasPropDisplayOption) {
             // 如果有prop，那么就按新的属性列表显示
             for (var head of showPropsList) {
-                if (headslist.indexOf(head) != -1) {
+                if (headslist.indexOf(head[0]) != -1) {
                     newHeadsList.push(head)
                 }
             }
         }
         else {
             // 没有prop就排除隐藏的属性后显示
-            for (var head of headslist) {
-                if (hiddenPropInTable.split("\n").indexOf(head) == -1) {
-                    newHeadsList.push(head)
+            for (var defaultHead of headslist) {
+                if (hiddenPropInTable.split("\n").indexOf(defaultHead) == -1) {
+                    newHeadsList.push([defaultHead, defaultHead, "text"])
                 }
             }
         }
-        newHeadsList.unshift("文件")
+        newHeadsList.unshift(["文件", "文件", "text"])
         return newHeadsList
     }
 
@@ -74,9 +164,39 @@ export class Table {
                 conditions.push(subConditions)
             }
         }
-        return new Search(this.app).getSelectedTFiles(conditions)
-    }
 
+        // 如果搜索框中有值，那么需要将搜索框的内容也添加为条件
+        var tfiles = new Search(this.app).getSelectedTFiles(conditions)
+        var newTfiles: Array<TFile> = new Array()
+        if(this.search.value) {
+            var propList = this.parseProp(tfiles)
+            for (var file of tfiles){
+                var md = new MDIO(this.app, file.path)
+                for (var i=0; i<propList.length; i++) {
+                    if (i==0){
+                        // propList的第一个是文件
+                        if (file.basename.indexOf(this.search.value) != -1) {
+                            newTfiles.push(file)
+                            break
+                        }
+                    }
+                    else {
+                        // propList的第一个是文件，后边才是属性
+                        if (String(md.getPropertyValue(propList[i][0])).indexOf(this.search.value) != -1) {
+                            newTfiles.push(file)
+                            break
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            newTfiles = tfiles
+        }
+
+        return newTfiles
+    }
+   
     /**
      * 解析排序并返回排序后的TFile数组
      *  支持多条件排序，排序的顺序从前到后
@@ -91,8 +211,8 @@ export class Table {
         for (var line of this.source.split('\n')) {
             // 开头为sort:
             if (line.startsWith("sort:")) {
-                for (var item of line.replace("sort:", "").split(':')) {
-                    sortList.push(item.split(','))
+                for (var item of line.replace("sort:", "").split(',')) {
+                    sortList.push(item.split(':'))
                 }
             }
         }
@@ -149,7 +269,7 @@ export class Table {
                 }
                 else {
                     var md = new MDIO(this.app, file.path)
-                    datalist.push(md.getPropertyValue(headslist[i]))
+                    datalist.push(md.getPropertyValue(headslist[i][0]))
                 }
             }
             this.addNewTr(headslist, datalist)
@@ -158,7 +278,7 @@ export class Table {
         
     }
 
-    setTh(headslist: Array<string>) {
+    setTh(headslist: Array<Array<string>>) {
         var tr = this.table.createEl("tr")
 
         for (var col of headslist) {
@@ -167,65 +287,130 @@ export class Table {
                     'contenteditable': 'false',
                     // "style": `width:${1/datalist.length}%`,
                 })
-            th.innerHTML = col
+            th.innerHTML = col[1]
             tr.appendChild(th)
         }
 
     }
 
-    addNewTr(headslist: Array<string>, datalist: Array<string>) {
+    addNewTr(headslist: Array<Array<string>>, datalist: Array<string>) {
         var tr = this.table.createEl("tr")
         for (var i=0; i<datalist.length; i++) {
             var td = document.createElement("td")
             if (i == 0) {
-                td.setAttrs({
-                    'contenteditable': 'false',
-                    "list": headslist[i],
-                })
                 td.innerHTML = `<a class="internal-link" data-hredf="${datalist[i]}" href="${datalist[i]}" target="_blank" rel="noopener">${datalist[i].split('/').pop().replace(".md", "")}</a>`
             }
             else {
-                // 重要属性不可编辑！！
-                if (bannedPropInTable.split("\n").indexOf(headslist[i])==-1) {
-                    // 如果不是重要属性
-                    td.setAttrs({
-                        'contenteditable': 'true',
-                        "path": datalist[0],
-                        "value": datalist[i],
-                        "list": headslist[i],
-                    })
+                if (bannedPropInTable.split("\n").indexOf(headslist[i][0])==-1) {
+                    td = this.createInput(td, headslist[i], datalist, i)
                 }
                 else{
-                    // 如果不是重要属性
-                    td.setAttrs({
-                        'contenteditable': 'false',
-                        "path": datalist[0],
-                        "value": datalist[i],
-                        "list": headslist[i],
-                    })
+                    // 重要属性不可编辑！！
+                    td.innerHTML = datalist[i]
                 }
-                td.innerHTML = datalist[i]
             }
             
-            var app = this.app
-            td.onblur = function(this) {
-                var md = new MDIO(app, this.getAttr("path"))
-                if (this.getAttr("value")!=this.innerHTML){
-                    this.setAttr("value", this.innerHTML)   
-                    // 有该属性则修改值
-                    if (md.hasProperty(this.getAttr("list"))) {
-                        md.tableUpdateProperty(this.getAttr("list"), this.innerHTML)
-                    }
-                    // 没有该属性则新建该属性并赋值
-                    else {
-                        md.addProperty(this.getAttr("list"), this.innerHTML)
-                    }
-                }
-            }
             tr.appendChild(td)
         }
 
     }
 
+    // 对于可编辑的td，为其创建输入或者其它元素
+    createInput(td: HTMLTableCellElement, subHeadslist: Array<string>, datalist: Array<string>, i:number):HTMLTableCellElement {
+        var propType = subHeadslist[2]   // 属性类型
+        var path = datalist[0]       // 文档路径
+        var lastValue = datalist[i]       // 修改前的值，用于判断当前值是否被修改
+        var prop = subHeadslist[0]   // 当前属性
+        
+        // 1、处理input格式
+        var input = td.createEl("input", {
+            attr: {
+                "type": propType,
+                "path": path,    // 文档路径
+                "name": lastValue,   // 修改前的值，用于判断当前值是否被修改
+                "list": prop,   // 当前属性
+            }
+        })
+        switch (propType) {
+            case "checkbox": {
+                if (input.getAttr("name")) {
+                    input.checked = true
+                }
+                else {
+                    input.checked = false
+                }
+            }; break;
+            case "img": {
+                // 隐藏input
+                input.style.visibility = "hidden"
+                input.value = datalist[i]
+                // 点击img会出现input
+                td.createEl("img", {
+                    attr: {
+                        "src" : input.getAttr("name")
+                    }
+                })
+                td.ondblclick = function(this) {
+                    this.children[1].style.visibility = "visible"
+                }
+                // input.style.visibility = "visible"
+                
+            }; break;
+            default:input.value = datalist[i]; break;
+
+        }
+
+        // 2、处理input失焦动作
+        var app = this.app
+        input.onblur = function(this) {
+            var md = new MDIO(app, this.getAttr("path"))
+            // 根据不同类型处理
+            switch(this.getAttr("type")) {
+                case "checkbox": {
+                    if (this.getAttr("name")!=this.checked){
+                        this.setAttr("name", this.checked)   
+                        // 有该属性则修改值
+                        if (md.hasProperty(this.getAttr("list"))) {
+                            md.tableUpdateProperty(this.getAttr("list"), this.checked)
+                        }
+                        // 没有该属性则新建该属性并赋值
+                        else {
+                            md.addProperty(this.getAttr("list"), this.checked)
+                        }
+                    }
+                }; break;
+                case "img": {
+                    this.style.visibility = "hidden"
+                    
+                    if (this.parentElement.children[0].getAttr("src")!=this.value){
+                        this.parentElement.children[0].setAttr("src", this.value)   
+                        // 有该属性则修改值
+                        if (md.hasProperty(this.getAttr("list"))) {
+                            md.tableUpdateProperty(this.getAttr("list"), this.value)
+                        }
+                        // 没有该属性则新建该属性并赋值
+                        else {
+                            md.addProperty(this.getAttr("list"), this.value)
+                        }
+                    }
+                }break;
+                default: {
+                    if (this.getAttr("name")!=this.value){
+                        this.setAttr("name", this.value)   
+                        // 有该属性则修改值
+                        if (md.hasProperty(this.getAttr("list"))) {
+                            md.tableUpdateProperty(this.getAttr("list"), this.value)
+                        }
+                        // 没有该属性则新建该属性并赋值
+                        else {
+                            md.addProperty(this.getAttr("list"), this.value)
+                        }
+                    }
+                }break;
+            }
+        }
+        td.appendChild(input)
+        return td
+    }
 
 }
