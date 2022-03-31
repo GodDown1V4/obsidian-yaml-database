@@ -1,8 +1,9 @@
 import { Modal, App, TFile, Notice } from "obsidian";
 import { MDIO, Search } from "src/md";
 import { bannedProp } from "main";
+import { admittedType } from "src/table"
  
-var conditionNameCount = 0;
+export var conditionNameCount = 0;
 /**
  * 1、主面板
  * 筛选条件
@@ -15,6 +16,7 @@ export class MainModal extends Modal{
     onOpen(): void {
         conditionNameCount = 0;     // 清零条件名称数
         var inputList = new Array();    // 用来装input以便后边读取数值
+        var app = this.app
 
 
 		const title = this.titleEl
@@ -29,7 +31,9 @@ export class MainModal extends Modal{
 		})
         button.setText("添加新的条件")
         button.onclick = function() {
-            inputList.push(conditionArea.addSearchInput(`condition${conditionNameCount}`))
+            var conditionArea = add3SearchInput(app)
+            form.appendChild(conditionArea[3])
+            inputList.push(conditionArea);
         }
 
 		// 2、无刷新表单
@@ -58,10 +62,9 @@ export class MainModal extends Modal{
 			}
 		})
         
-        var conditionArea = new Condition(this.app, form)
-        inputList.push(conditionArea.addSearchInput(`condition${conditionNameCount}`));
-
-        var app = this.app
+        var conditionArea = add3SearchInput(this.app)
+        form.appendChild(conditionArea[3])
+        inputList.push(conditionArea);
         
         form.onsubmit = function(this){
             var conditions = new Array();
@@ -799,100 +802,43 @@ export class SelectedFileModal extends Modal{
     }
 }
 
+
 /**
- * 条件
+ * 创建3个输入搜索框（也可能是2个搜索输入框+1个文字输入框）
  */
-export class Condition {
-    app: App;
-    form: HTMLFormElement;
-
-    constructor(app:App, form: HTMLFormElement) {
-        this.app = app;
-        this.form = form;
-    }
-
-    /**创建3个输入搜索框（也可能是2个搜索输入框+1个文字输入框）
-     * @param Name 确保该参数为独一无二的，使用form.name1、form.name2、form.name3读取input值
+ export function add3SearchInput(app:App, defaultValue: Array<string> = []) {
+    var conDiv = document.createElement("div")
+    var deleteButton = conDiv.createEl("button")
+    deleteButton.innerHTML = "删除条件"
+    /**
+     * 搜索输入选框
      */
-    addSearchInput(Name: string) {
-        conditionNameCount = conditionNameCount + 1;
+    if (defaultValue.length == 3) {
+        var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,defaultValue[0],["yaml", "yaml属性", "标签", "文件名称", "文件路径"])
+        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,defaultValue[1],[])
+        var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,defaultValue[2],[])
+    }
+    else {
+        var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,"",["yaml", "yaml属性", "标签", "文件名称", "文件路径"])
+        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,"",[])
+        var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,"",[])
+    }
+    conDiv.appendChild(input1)
+    conDiv.appendChild(searchResult1)
+    conDiv.appendChild(input2)
+    conDiv.appendChild(searchResult2)
+    conDiv.appendChild(input3)
+    conDiv.appendChild(searchResult3)
 
-        this.form.createDiv().setText(`条件${conditionNameCount}`)
-        /**
-         * 搜索输入选框1
-         */
-		var input1 = this.form.createEl("input", {
-			'attr': {
-				"class": "kanbanMOC",
-				'type': 'text',
-				"list": Name + "1"
-			}
-		})
-		input1.placeholder = "请选择";
-
-		var searchResult1 = this.form.createEl("datalist", {
-			"attr": {
-				"id": Name + "1"
-			}
-		})
-        
-        for(var choice of ["yaml", "yaml属性", "标签", "文件名称", "文件路径"]){
-            var item = document.createElement('option');
-            item.innerHTML = choice;
-            searchResult1.appendChild(item);
-        }
-
-        /**
-         * 搜索输入选框2
-         */
-         var input2 = this.form.createEl("input", {
-			'attr': {
-				"class": "kanbanMOC",
-				'type': 'text',
-				"list": Name + "2"
-			}
-		})
-		input2.placeholder = "请输入";
-
-		var searchResult2 = this.form.createEl("datalist", {
-			"attr": {
-				"id": Name + "2"
-			}
-		})
-
-        /**
-         * 搜索输入选框3
-         */
-         var input3 = this.form.createEl("input", {
-			'attr': {
-				"class": "kanbanMOC",
-				'type': 'text',
-				"list": Name + "3"
-			}
-		})
-		input3.placeholder = "请输入";
-
-		var searchResult3 = this.form.createEl("datalist", {
-			"attr": {
-				"id": Name + "3"
-			}
-		})
-
-        /**
-         * input1 oninput
-         */
-        var app = this.app;
-		input1.oninput = function() {
-            // 输入选框1改动时其它2个选框清空
-            input2.value = "";
-			searchResult2.empty();
-            input3.value = "";
-			searchResult3.empty();
-
-            // 输入1搜索候选项
-
-            // 如果input1值为候选项中的值，则开始处理输入2、3候选项
-            if (input1.value == "yaml") {
+    deleteButton.onclick = function() {
+        input1.value = ""
+        input2.value = ""
+        input3.value = ""
+        conDiv.remove()
+    }
+    function solveOptions() {
+        switch(input1.value) {
+            case "yaml":{
                 // 处理input2
                 for(var choice of ["包含", "不包含"]){
                     var item = document.createElement('option');
@@ -906,8 +852,8 @@ export class Condition {
                     item.innerHTML = choice;
                     searchResult3.appendChild(item);
                 }
-            }
-            else if (input1.value == "yaml属性") {
+            }; break;
+            case "yaml属性":{
                 // 处理input2
                 var search = new Search(app);
                 for(var choice of search.getAllYamlPropertiesName()){
@@ -915,20 +861,25 @@ export class Condition {
                     item.innerHTML = choice;
                     searchResult2.appendChild(item);
                 }
+                for(var choice of search.getAllValuesOfAProperty(input2.value)){
+                    if (choice) {
+                        var item = document.createElement('option');
+                        item.innerHTML = choice;
+                        searchResult3.appendChild(item);
+                    }
+                }
                 // 处理input3
                 input2.oninput = function() {
-                    if (input1.value == "yaml属性") {
-                        for(var choice of search.getAllValuesOfAProperty(input2.value)){
-                            if (choice) {
-                                var item = document.createElement('option');
-                                item.innerHTML = choice;
-                                searchResult3.appendChild(item);
-                            }
+                    for(var choice of search.getAllValuesOfAProperty(input2.value)){
+                        if (choice) {
+                            var item = document.createElement('option');
+                            item.innerHTML = choice;
+                            searchResult3.appendChild(item);
                         }
                     }
                 }
-            }
-            else if (input1.value == "标签") {
+            }; break;
+            case "标签":{
                 // 处理input2
                 for(var choice of ["包含", "不包含"]){
                     var item = document.createElement('option');
@@ -942,16 +893,127 @@ export class Condition {
                     item.innerHTML = choice;
                     searchResult3.appendChild(item);
                 }
-            }
-            else if (input1.value == "文件名称" || input1.value == "文件路径") {
+            }; break;
+            default:{   // 默认为"文件路径"和"文件名称"
                 // 处理input2
                 for(var choice of ["符合", "不符合"]){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
                     searchResult2.appendChild(item);
                 }
-            }
-		}
-        return [input1, input2, input3]
+            }; break;
+        }
     }
+
+    solveOptions()
+    /**
+     * input1 oninput
+     */
+    input1.oninput = function() {
+        // 输入选框1改动时其它2个选框清空
+        input2.value = "";
+        searchResult2.empty();
+        input3.value = "";
+        searchResult3.empty();
+
+        // 输入1搜索候选项
+
+        // 如果input1值为候选项中的值，则开始处理输入2、3候选项
+        solveOptions()
+    }
+    return [input1, input2, input3, conDiv]
+}
+/**
+ * 创建3个用于属性输入搜索框（也可能是2个搜索输入框+1个文字输入框）
+ */
+ export function add3SearchPropInput(headslist: Array<string>, defaultValue: Array<string> = []) {
+    var conDiv = document.createElement("div")
+    var deleteButton = conDiv.createEl("button")
+    deleteButton.innerHTML = "删除条件"
+    /**
+     * 搜索输入选框
+     */
+    if (defaultValue.length == 3) {
+        var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,defaultValue[0],headslist)
+        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,defaultValue[1],[])
+        var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,defaultValue[2],admittedType)
+    }
+    else {
+        var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,"",headslist)
+        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,"",[])
+        var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,"text",admittedType)
+    }
+    conDiv.appendChild(input1)
+    conDiv.appendChild(searchResult1)
+    conDiv.appendChild(input2)
+    conDiv.appendChild(searchResult2)
+    conDiv.appendChild(input3)
+    conDiv.appendChild(searchResult3)
+
+    deleteButton.onclick = function() {
+        input1.value = ""
+        input2.value = ""
+        input3.value = ""
+        conDiv.remove()
+    }
+
+    /**
+     * input1 oninput
+     */
+    input1.oninput = function() {
+        input2.value = input1.value
+    }
+    return [input1, input2, input3, conDiv]
+}
+/**
+ * 创建2个输入搜索框（也可能是2个搜索输入框+1个文字输入框）
+ */
+export function add2SortInput(headslist: Array<string>, defaultValue: Array<string> = []) {
+    var conDiv = document.createElement("div")
+    var deleteButton = conDiv.createEl("button")
+    deleteButton.innerHTML = "删除条件"
+    /**
+     * 搜索输入选框
+     */
+    if (defaultValue.length == 2) {
+        var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,defaultValue[0],headslist)
+        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,defaultValue[1],["asc","desc"])
+    }
+    else {
+        var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,"",headslist)
+        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,"",["asc","desc"])
+    }
+    conDiv.appendChild(input1)
+    conDiv.appendChild(searchResult1)
+    conDiv.appendChild(input2)
+    conDiv.appendChild(searchResult2)
+
+    deleteButton.onclick = function() {
+        input1.value = ""
+        input2.value = ""
+        conDiv.remove()
+    }
+    return [input1, input2, conDiv]
+}
+
+
+export function createInputWithChoice(uniqueId:number, defaultValue:string, datalist: Array<string>) {
+    var input = document.createElement("input")
+    input.setAttrs({
+        "class": "kanbanMOC",
+        'type': 'text',
+        "list": String(uniqueId) + "condition-yaml"
+    })
+    input.value = defaultValue
+
+    var searchResult = document.createElement("datalist")
+    searchResult.setAttr("id", String(uniqueId) + "condition-yaml")
+
+    for(var choice of datalist){
+        var item = document.createElement('option');
+        item.innerHTML = choice;
+        searchResult.appendChild(item);
+    }
+
+    return [input, searchResult]
 }

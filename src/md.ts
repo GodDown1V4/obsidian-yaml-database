@@ -12,7 +12,7 @@ export class MDIO{
     }
     // 方便的获取TFlie
 	getTFile(){
-		for (var file of this.app.vault.getFiles()) {
+		for (var file of this.app.vault.getMarkdownFiles()) {
 			if (file.path == this.path) {
 				return file;
 			}
@@ -98,7 +98,7 @@ export class MDIO{
                     result = value.toString()
                 }
                 else {
-                    result = value
+                    result = String(value)
                 }
             }
         }
@@ -465,7 +465,7 @@ export class Search{
                             fileSelected = false
                             break
                         }
-                        else if(md.getPropertyValue(condition[1]) != condition[2]) {
+                        else if(String(md.getPropertyValue(condition[1])) != String(condition[2])) {
                             fileSelected = false
                             break
                         }

@@ -1,6 +1,19 @@
 import { Modal, App, TFile, Notice, MarkdownPostProcessorContext} from "obsidian";
 import { MDIO, Search } from "src/md";
 import { bannedPropInTable, hiddenPropInTable} from "main";
+import { createInputWithChoice,add3SearchInput, add2SortInput, add3SearchPropInput } from "src/modal"
+
+var conditionNameCount = 0
+
+// 允许的属性类型，若不满足则设为默认类型text
+export var admittedType = [
+    "text",
+    "number",
+    "date",
+    "time",
+    "checkbox",
+    "img",
+]
 
 export class Table {
     app: App;
@@ -9,6 +22,11 @@ export class Table {
     context: MarkdownPostProcessorContext;
     table: HTMLTableElement;
     search: HTMLInputElement;
+    divOperate: HTMLDivElement;
+    buttonFresh: HTMLButtonElement;
+    propbutton: HTMLButtonElement;
+    sortbutton: HTMLButtonElement;
+    FilterFresh: HTMLButtonElement;
 
     constructor(app: App,source: string, el: HTMLElement, context: MarkdownPostProcessorContext) {
         this.app = app;
@@ -16,18 +34,19 @@ export class Table {
         this.el = el;
         this.context = context;
 
-        var divOperate = el.createDiv({
+        // 操作区域
+        this.divOperate = el.createDiv({
             attr: {
                 "class": "tableOpreate"
             }
-        }) // 操作区域
+        }) 
         var divTable = el.createDiv()   // 表格区域
         var superThis = this
 
         // 1、刷新按钮
-        var buttonFresh = divOperate.createEl("button")
-        buttonFresh.innerHTML = "刷新"
-        buttonFresh.onclick = function(this, evt) {
+        this.buttonFresh = this.divOperate.createEl("button")
+        this.buttonFresh.innerHTML = "刷新"
+        this.buttonFresh.onclick = function(this, evt) {
             // 重新渲染表格
             divTable.empty()
             superThis.renderTable()
@@ -35,25 +54,59 @@ export class Table {
         }
 
         // 2、搜索框
-        this.search = divOperate.createEl("input", {
+        this.search = this.divOperate.createEl("input", {
             attr: {
                 "type": "search"
             }
         })
 
         this.search.placeholder = "搜索..."
-        this.search.onkeyup = function(this, evt) {
-            if (evt.key == "Enter") {
-                // 重新渲染表格
-                divTable.empty()
-                superThis.renderTable()
-                divTable.appendChild(superThis.table)
-            }
+        this.search.oninput = function(this) {
+            divTable.empty()
+            superThis.renderTable()
+            divTable.appendChild(superThis.table)
         }
+
+        // 3、属性按钮（显示名称、数据类型）
+        this.propbutton = this.divOperate.createEl("button")
+        this.propbutton.innerHTML = "属性"
+        this.propbutton.onclick = function(this, evt) {
+            superThis.propModal(this)
+        }
+        // 4、排序按钮
+        this.sortbutton = this.divOperate.createEl("button")
+        this.sortbutton.innerHTML = "↑↓"
+        this.sortbutton.onclick = function(this, evt) {
+            superThis.sortModal(this) 
+        }
+        // 5、筛选文档按钮
+        this.FilterFresh = this.divOperate.createEl("button")
+        this.FilterFresh.innerHTML = "筛选"
+        this.FilterFresh.onclick = function(this, evt) {
+            superThis.filterModal(this)
+        }
+
 
         // 渲染表格
         this.renderTable()
         divTable.appendChild(this.table)
+    }
+
+    /**
+     * ================================================================
+     * 解析source
+     * ================================================================
+     */
+    /**
+     * ！！这要求用户使用时必须在代码块中创建ID！！
+     * @returns 返回ID
+     */
+    parseID(): string {
+        for (var line of this.source.split('\n')) {
+            if (line.startsWith("id:")) {
+                return line.replace("id:", "")
+            }
+        }
     }
 
     /**
@@ -68,16 +121,6 @@ export class Table {
     parseProp(tfiles: Array<TFile>): Array<Array<string>> {// 解析代码块中要显示的属性
         // 设置题头，按顺序依次为：文件名、属性1、属性2、……
         var search = new Search(this.app);
-
-        // 允许的属性类型，若不满足则设为默认类型text
-        var admittedType = [
-            "text",
-            "number",
-            "date",
-            "time",
-            "checkbox",
-            "img",
-        ]
 
         var headslist = search.getYamlPropertiesNameOfTfiles(tfiles)
         // 判断是否有prop选项
@@ -157,14 +200,19 @@ export class Table {
         for (var line of this.source.split('\n')) {
             var subConditions = new Array()
             // 开头为prop:的不是条件
-            if (!line.startsWith("prop:") && !line.startsWith("sort:")) {
-                for (var item of line.split(':')) {
-                    subConditions.push(item)
+            var lineList = line.split(":")
+            if (!line.startsWith("prop:") && !line.startsWith("sort:") && !line.startsWith("id:") && lineList.length>=3) {
+                if (lineList.length > 3) {
+                    conditions.push([lineList[0], lineList[1] ,line.replace(`${lineList[0]}:${lineList[1]}:`, "")])
                 }
-                conditions.push(subConditions)
+                else {
+                    for (var item of lineList) {
+                        subConditions.push(item)
+                    }
+                    conditions.push(subConditions)
+                }
             }
         }
-
         // 如果搜索框中有值，那么需要将搜索框的内容也添加为条件
         var tfiles = new Search(this.app).getSelectedTFiles(conditions)
         var newTfiles: Array<TFile> = new Array()
@@ -212,7 +260,9 @@ export class Table {
             // 开头为sort:
             if (line.startsWith("sort:")) {
                 for (var item of line.replace("sort:", "").split(',')) {
-                    sortList.push(item.split(':'))
+                    if (item) {
+                        sortList.push(item.split(':'))
+                    }
                 }
             }
         }
@@ -245,6 +295,325 @@ export class Table {
         return tfiles
     }
 
+    /**
+     * ================================================================
+     * 操作区域
+     * ================================================================
+     */
+    filterModal(mainbutton: GlobalEventHandlers) {
+        
+        mainbutton.disabled = true
+        // 解析代码块中的现实的条件
+        var oldConditions: Array<Array<string>> = new Array()
+        var newConditions: Array<string> = new Array()
+        for (var line of this.source.split('\n')) {
+            var subConditions = new Array()
+            // 开头为prop:的不是条件
+            var lineList = line.split(":")
+            if (!line.startsWith("prop:") && !line.startsWith("sort:") && !line.startsWith("id:") && lineList.length>=3) {
+                if (lineList.length > 3) {
+                    oldConditions.push([lineList[0], lineList[1] ,line.replace(`${lineList[0]}:${lineList[1]}:`, "")])
+                }
+                else {
+                    for (var item of lineList) {
+                        subConditions.push(item)
+                    }
+                    oldConditions.push(subConditions)
+                }
+            }
+            else {
+                if (line) {
+                    newConditions.push(line)
+                }
+            }
+        }
+
+        // 在操作面板下方新建一个操作区域
+        var filterDiv = this.divOperate.createDiv()
+        var inputList = new Array();    // 用来装input以便后边读取数值
+        var app = this.app
+
+		// 无刷新表单
+		filterDiv.createEl("iframe", {
+			'attr': {
+				'id': 'id_iframe',
+				'name': 'id_iframe',
+				'style': 'display:none',
+			}
+		})
+        var filterConDiv = filterDiv.createDiv()
+        var button = filterDiv.createEl("button")
+
+		var form = filterConDiv.createEl("form", {
+			'attr': {
+                'name': 'form1',
+				'target': 'id_iframe',
+			}
+		})
+        button.setText("添加新的条件")
+        button.onclick = function() {
+            var conditionArea = add3SearchInput(app)
+            form.appendChild(conditionArea[3])
+            inputList.push(conditionArea);
+
+        }
+
+        // 确认框
+		form.createEl("input", {
+			'attr': {
+				'target': 'id_iframe',
+				'type': 'submit',
+				'value': '   确定    ',
+			}
+		})
+        
+        for (var condition of oldConditions) {
+            var conditionArea = add3SearchInput(this.app, condition)
+            form.appendChild(conditionArea[3])
+            inputList.push(conditionArea); 
+        }
+
+
+        var superThis = this
+        
+        form.onsubmit = function(this){
+            for (var conInput of inputList) {
+                if (String(conInput[0].value) && String(conInput[1].value) && String(conInput[2].value)) {
+                    newConditions.push(`${conInput[0].value}:${conInput[1].value}:${conInput[2].value}`)
+                }
+            }
+            var newContent = ""
+            for (var line of newConditions) {
+                if (line) {
+                    newContent = newContent + line + "\n"
+                }
+            }
+            superThis.updateCodeBlock(newContent)
+            filterDiv.remove()
+            // 重新渲染表格
+            setInterval(() => {
+                superThis.buttonFresh.click()
+            }, 500)
+            mainbutton.disabled = false
+        }
+        
+    }
+
+    
+    sortModal(mainbutton: GlobalEventHandlers) {
+        mainbutton.disabled = true
+        var newConditions = new Array()
+        // 解析排序
+        var sortList: Array<Array<string>> = new Array()
+        for (var line of this.source.split('\n')) {
+            // 开头为sort:
+            if (line.startsWith("sort:")) {
+                for (var item of line.replace("sort:", "").split(',')) {
+                    if (item) {
+                        sortList.push(item.split(':'))
+                    }
+                }
+            }
+            else {
+                newConditions.push(line)
+            }
+        }
+
+        // 在操作面板下方新建一个操作区域
+        var sortDiv = this.divOperate.createDiv()
+        var inputList = new Array();    // 用来装input以便后边读取数值
+        var app = this.app
+
+		// 无刷新表单
+		sortDiv.createEl("iframe", {
+			'attr': {
+				'id': 'id_iframe',
+				'name': 'id_iframe',
+				'style': 'display:none',
+			}
+		})
+        var filterConDiv = sortDiv.createDiv()
+        var button = sortDiv.createEl("button")
+
+		var form = filterConDiv.createEl("form", {
+			'attr': {
+                'name': 'form1',
+				'target': 'id_iframe',
+			}
+		})
+        button.setText("添加新的排序条件")
+        var propsList = new Search(app).getYamlPropertiesNameOfTfiles(this.parseConditions())
+        button.onclick = function() {
+
+            var conditionArea = add2SortInput(propsList)
+            form.appendChild(conditionArea[2])
+            inputList.push(conditionArea);
+
+        }
+
+        // 确认框
+		form.createEl("input", {
+			'attr': {
+				'target': 'id_iframe',
+				'type': 'submit',
+				'value': '   确定    ',
+			}
+		})
+        
+        for (var condition of sortList) {
+            var conditionArea = add2SortInput(propsList, condition)
+            form.appendChild(conditionArea[2])
+            inputList.push(conditionArea); 
+        }
+
+
+        var superThis = this
+        
+        form.onsubmit = function(this){
+            var newContent = ""
+            for (var conInput of inputList) {
+                if (String(conInput[0].value) && String(conInput[1].value)) {
+                    newContent = newContent + `${conInput[0].value}:${conInput[1].value},`
+                }
+            }
+            if (newContent) {
+                newContent = newConditions.join("\n") + "\nsort:" + newContent
+            }
+            else {
+                newContent = newConditions.join("\n")
+            }
+            var result = ""
+            for (var line of newContent.split("\n")) {
+                if (line) {
+                    result = result + line + "\n"
+                }
+            }
+            //
+            superThis.updateCodeBlock(String(result))
+            sortDiv.remove()
+            // 重新渲染表格
+            setInterval(() => {
+                superThis.buttonFresh.click()
+            }, 500)
+            mainbutton.disabled = false
+        }
+        
+    }
+
+    propModal(mainbutton: GlobalEventHandlers) {
+        mainbutton.disabled = true
+
+        // 解析代码块中的现实的条件
+        var oldConditions = this.parseProp(this.parseConditions())
+        oldConditions.shift()
+        var newConditions: Array<string> = new Array()
+        for (var line of this.source.split('\n')) {
+            // 开头为prop:的不是条件
+            if (!line.startsWith("prop:")) {
+                newConditions.push(line)
+            }
+        }
+
+        // 在操作面板下方新建一个操作区域
+        var filterDiv = this.divOperate.createDiv()
+        var inputList = new Array();    // 用来装input以便后边读取数值
+        var app = this.app
+
+		// 无刷新表单
+		filterDiv.createEl("iframe", {
+			'attr': {
+				'id': 'id_iframe',
+				'name': 'id_iframe',
+				'style': 'display:none',
+			}
+		})
+        var filterConDiv = filterDiv.createDiv()
+        var button = filterDiv.createEl("button")
+
+		var form = filterConDiv.createEl("form", {
+			'attr': {
+                'name': 'form1',
+				'target': 'id_iframe',
+			}
+		})
+        var propsList = new Search(app).getYamlPropertiesNameOfTfiles(this.parseConditions())
+
+        button.setText("添加新的属性")
+        button.onclick = function() {
+            var conditionArea = add3SearchPropInput(propsList)
+            form.appendChild(conditionArea[3])
+            inputList.push(conditionArea);
+
+        }
+
+        // 确认框
+		form.createEl("input", {
+			'attr': {
+				'target': 'id_iframe',
+				'type': 'submit',
+				'value': '   确定    ',
+			}
+		})
+        
+        for (var condition of oldConditions) {
+            var conditionArea = add3SearchPropInput(propsList, condition)
+            form.appendChild(conditionArea[3])
+            inputList.push(conditionArea); 
+        }
+
+
+        var superThis = this
+        
+        form.onsubmit = function(this){
+            var newContent = ""
+            for (var conInput of inputList) {
+                if (String(conInput[0].value) && String(conInput[1].value) && String(conInput[2].value)) {
+                    newContent = newContent + `${conInput[0].value}:name.${conInput[1].value}:type.${conInput[2].value},`
+                }
+            }
+            if(newContent) {
+                newContent = newConditions.join("\n")  + "\nprop:" + newContent
+            }
+            else {
+                newContent = newConditions.join("\n")
+            }
+            var result = ""
+            for (var line of newContent.split("\n")) {
+                if (line) {
+                    result = result + line + "\n"
+                }
+            }
+            superThis.updateCodeBlock(result)
+            filterDiv.remove()
+            // 重新渲染表格
+            // setInterval(() => {
+            //     superThis.buttonFresh.click()
+            // }, 500)
+            mainbutton.disabled = false
+        }
+        
+    }
+
+    updateCodeBlock(content: string) {
+        var path = this.context.sourcePath
+        for (var file of this.app.vault.getMarkdownFiles()) {
+            if (file.path == path) {
+                this.app.vault.read(file).then(oldContent => {
+                    this.app.vault.modify(file, oldContent.replace(this.source, content)).then(()=>{
+                        // 赋值给source，实现不刷新页面重新渲染表格
+                        this.source = content
+                    })
+                })
+                return
+            }
+        }
+    }
+
+    /**
+     * ================================================================
+     * 渲染表格
+     * ================================================================
+     */
     renderTable() {
         // 1、解析conditions获取文档TFile数组
         var tfiles = this.parseConditions()
@@ -314,8 +683,7 @@ export class Table {
         }
 
     }
-
-    // 对于可编辑的td，为其创建输入或者其它元素
+    
     createInput(td: HTMLTableCellElement, subHeadslist: Array<string>, datalist: Array<string>, i:number):HTMLTableCellElement {
         var propType = subHeadslist[2]   // 属性类型
         var path = datalist[0]       // 文档路径
@@ -333,28 +701,43 @@ export class Table {
         })
         switch (propType) {
             case "checkbox": {
-                if (input.getAttr("name")) {
+                if (input.getAttr("name") == "true") {
                     input.checked = true
                 }
                 else {
                     input.checked = false
                 }
+                input.onclick = function(this: HTMLInputElement) {
+                    this.blur()
+                }
             }; break;
             case "img": {
+                input.value = datalist[i]
                 // 隐藏input
                 input.style.visibility = "hidden"
-                input.value = datalist[i]
                 // 点击img会出现input
                 td.createEl("img", {
                     attr: {
                         "src" : input.getAttr("name")
                     }
                 })
-                td.ondblclick = function(this) {
-                    this.children[1].style.visibility = "visible"
+                td.ondblclick = function(this: HTMLTableCellElement) {
+                    this.children[1].setAttr("style", "visibility:visible;")
                 }
                 // input.style.visibility = "visible"
                 
+            }; break;
+            case "date":{
+                input.value = datalist[i]
+                input.oninput = function(this: HTMLInputElement) {
+                    this.blur()
+                }
+            }; break;
+            case "time":{
+                input.value = datalist[i]
+                input.oninput = function(this: HTMLInputElement) {
+                    this.blur()
+                }
             }; break;
             default:input.value = datalist[i]; break;
 
@@ -362,20 +745,20 @@ export class Table {
 
         // 2、处理input失焦动作
         var app = this.app
-        input.onblur = function(this) {
+        input.onblur = function(this:HTMLInputElement) {
             var md = new MDIO(app, this.getAttr("path"))
             // 根据不同类型处理
             switch(this.getAttr("type")) {
                 case "checkbox": {
-                    if (this.getAttr("name")!=this.checked){
+                    if (this.getAttr("name")!=String(String(this.checked))){
                         this.setAttr("name", this.checked)   
                         // 有该属性则修改值
                         if (md.hasProperty(this.getAttr("list"))) {
-                            md.tableUpdateProperty(this.getAttr("list"), this.checked)
+                            md.tableUpdateProperty(this.getAttr("list"), String(this.checked))
                         }
                         // 没有该属性则新建该属性并赋值
                         else {
-                            md.addProperty(this.getAttr("list"), this.checked)
+                            md.addProperty(this.getAttr("list"), String(this.checked))
                         }
                     }
                 }; break;
