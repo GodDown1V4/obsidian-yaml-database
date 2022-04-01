@@ -814,19 +814,17 @@ export class SelectedFileModal extends Modal{
      * 搜索输入选框
      */
     if (defaultValue.length == 3) {
-        var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,defaultValue[0],["yaml", "yaml属性", "标签", "文件名称", "文件路径"])
-        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,defaultValue[1],[])
+        var input1 = createSelectWithChoice(defaultValue[0],["yaml", "yaml属性", "标签", "文件名称", "文件路径"])
+        var input2 = createSelectWithChoice(defaultValue[1],[])
         var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,defaultValue[2],[])
     }
     else {
-        var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,"",["yaml", "yaml属性", "标签", "文件名称", "文件路径"])
-        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,"",[])
+        var input1 = createSelectWithChoice("",["yaml", "yaml属性", "标签", "文件名称", "文件路径"])
+        var input2 = createSelectWithChoice("",[])
         var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,"",[])
     }
     conDiv.appendChild(input1)
-    conDiv.appendChild(searchResult1)
     conDiv.appendChild(input2)
-    conDiv.appendChild(searchResult2)
     conDiv.appendChild(input3)
     conDiv.appendChild(searchResult3)
 
@@ -843,7 +841,8 @@ export class SelectedFileModal extends Modal{
                 for(var choice of ["包含", "不包含"]){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
-                    searchResult2.appendChild(item);
+                    item.setAttr("value", choice)
+                    input2.appendChild(item);
                 }
                 // 处理input3
                 var search = new Search(app);
@@ -859,7 +858,8 @@ export class SelectedFileModal extends Modal{
                 for(var choice of search.getAllYamlPropertiesName()){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
-                    searchResult2.appendChild(item);
+                    item.setAttr("value", choice)
+                    input2.appendChild(item);
                 }
                 for(var choice of search.getAllValuesOfAProperty(input2.value)){
                     if (choice) {
@@ -884,7 +884,8 @@ export class SelectedFileModal extends Modal{
                 for(var choice of ["包含", "不包含"]){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
-                    searchResult2.appendChild(item);
+                    item.setAttr("value", choice)
+                    input2.appendChild(item);
                 }
                 // 处理input3
                 var search = new Search(app);
@@ -899,7 +900,8 @@ export class SelectedFileModal extends Modal{
                 for(var choice of ["符合", "不符合"]){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
-                    searchResult2.appendChild(item);
+                    item.setAttr("value", choice)
+                    input2.appendChild(item);
                 }
             }; break;
         }
@@ -912,7 +914,7 @@ export class SelectedFileModal extends Modal{
     input1.oninput = function() {
         // 输入选框1改动时其它2个选框清空
         input2.value = "";
-        searchResult2.empty();
+        input2.empty();
         input3.value = "";
         searchResult3.empty();
 
@@ -929,26 +931,23 @@ export class SelectedFileModal extends Modal{
  export function add3SearchPropInput(headslist: Array<string>, defaultValue: Array<string> = []) {
     var conDiv = document.createElement("div")
     var deleteButton = conDiv.createEl("button")
-    deleteButton.innerHTML = "删除条件"
+    deleteButton.innerHTML = "删除属性显示"
     /**
      * 搜索输入选框
      */
     if (defaultValue.length == 3) {
-        var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,defaultValue[0],headslist)
+        var input1 = createSelectWithChoice(defaultValue[0],headslist)
         var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,defaultValue[1],[])
-        var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,defaultValue[2],admittedType)
+        var input3 = createSelectWithChoice(defaultValue[2],admittedType)
     }
     else {
-        var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,"",headslist)
+        var input1 = createSelectWithChoice("",headslist)
         var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,"",[])
-        var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,"text",admittedType)
+        var input3 = createSelectWithChoice("text",admittedType)
     }
     conDiv.appendChild(input1)
-    conDiv.appendChild(searchResult1)
     conDiv.appendChild(input2)
-    conDiv.appendChild(searchResult2)
     conDiv.appendChild(input3)
-    conDiv.appendChild(searchResult3)
 
     deleteButton.onclick = function() {
         input1.value = ""
@@ -976,17 +975,15 @@ export function add2SortInput(headslist: Array<string>, defaultValue: Array<stri
      * 搜索输入选框
      */
     if (defaultValue.length == 2) {
-        var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,defaultValue[0],headslist)
-        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,defaultValue[1],["asc","desc"])
+        var input1 = createSelectWithChoice(defaultValue[0],headslist)
+        var input2 = createSelectWithChoice(defaultValue[1],["asc","desc"])
     }
     else {
-        var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,"",headslist)
-        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,"",["asc","desc"])
+        var input1 = createSelectWithChoice("",headslist)
+        var input2 = createSelectWithChoice("",["asc","desc"])
     }
     conDiv.appendChild(input1)
-    conDiv.appendChild(searchResult1)
     conDiv.appendChild(input2)
-    conDiv.appendChild(searchResult2)
 
     deleteButton.onclick = function() {
         input1.value = ""
@@ -996,11 +993,30 @@ export function add2SortInput(headslist: Array<string>, defaultValue: Array<stri
     return [input1, input2, conDiv]
 }
 
+export function createSelectWithChoice(defaultValue:string, datalist: Array<string>) {
+    var select = document.createElement("select")
+    select.setAttrs({
+        "class": "kanbanMOC",
+        // 'type': 'text',
+        // "list": String(uniqueId) + "condition-yaml"
+    })
+
+    for(var choice of datalist){
+        var item = document.createElement('option');
+        if (choice == defaultValue) {
+            item.selected = true
+        }
+        item.setAttr("value", choice)
+        item.innerHTML = choice;
+        select.appendChild(item);
+    }
+
+    return select
+}
 
 export function createInputWithChoice(uniqueId:number, defaultValue:string, datalist: Array<string>) {
     var input = document.createElement("input")
     input.setAttrs({
-        "class": "kanbanMOC",
         'type': 'text',
         "list": String(uniqueId) + "condition-yaml"
     })

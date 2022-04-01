@@ -1,9 +1,9 @@
 import { Modal, App, TFile, Notice, MarkdownPostProcessorContext} from "obsidian";
 import { MDIO, Search } from "src/md";
 import { bannedPropInTable, hiddenPropInTable} from "main";
-import { createInputWithChoice,add3SearchInput, add2SortInput, add3SearchPropInput } from "src/modal"
+import { createInputWithChoice,add3SearchInput, add2SortInput, add3SearchPropInput, SelectedFileModal } from "src/modal"
 
-var conditionNameCount = 0
+var buttonConut = true
 
 // 允许的属性类型，若不满足则设为默认类型text
 export var admittedType = [
@@ -70,18 +70,19 @@ export class Table {
         // 3、属性按钮（显示名称、数据类型）
         this.propbutton = this.divOperate.createEl("button")
         this.propbutton.innerHTML = "属性"
-        this.propbutton.onclick = function(this, evt) {
-            superThis.propModal(this)
-        }
         // 4、排序按钮
         this.sortbutton = this.divOperate.createEl("button")
         this.sortbutton.innerHTML = "↑↓"
-        this.sortbutton.onclick = function(this, evt) {
-            superThis.sortModal(this) 
-        }
         // 5、筛选文档按钮
         this.FilterFresh = this.divOperate.createEl("button")
         this.FilterFresh.innerHTML = "筛选"
+        // 对应操作
+        this.propbutton.onclick = function(this, evt) {
+            superThis.propModal(this)
+        }
+        this.sortbutton.onclick = function(this, evt) {
+            superThis.sortModal(this) 
+        }
         this.FilterFresh.onclick = function(this, evt) {
             superThis.filterModal(this)
         }
@@ -343,6 +344,7 @@ export class Table {
 		})
         var filterConDiv = filterDiv.createDiv()
         var button = filterDiv.createEl("button")
+        var cancelbutton = filterDiv.createEl("button")
 
 		var form = filterConDiv.createEl("form", {
 			'attr': {
@@ -366,6 +368,11 @@ export class Table {
 				'value': '   确定    ',
 			}
 		})
+        cancelbutton.setText("取消编辑")
+        cancelbutton.onclick = function() {
+            filterDiv.remove()
+            mainbutton.disabled = false
+        }
         
         for (var condition of oldConditions) {
             var conditionArea = add3SearchInput(this.app, condition)
@@ -434,6 +441,7 @@ export class Table {
 		})
         var filterConDiv = sortDiv.createDiv()
         var button = sortDiv.createEl("button")
+        var cancelbutton = sortDiv.createEl("button")
 
 		var form = filterConDiv.createEl("form", {
 			'attr': {
@@ -443,6 +451,7 @@ export class Table {
 		})
         button.setText("添加新的排序条件")
         var propsList = new Search(app).getYamlPropertiesNameOfTfiles(this.parseConditions())
+        propsList.unshift("文件")
         button.onclick = function() {
 
             var conditionArea = add2SortInput(propsList)
@@ -459,8 +468,13 @@ export class Table {
 				'value': '   确定    ',
 			}
 		})
+        cancelbutton.setText("取消编辑")
+        cancelbutton.onclick = function() {
+            sortDiv.remove()
+            mainbutton.disabled = false
+        }
         
-        for (var condition of sortList) {
+        for (var condition of sortList) { 
             var conditionArea = add2SortInput(propsList, condition)
             form.appendChild(conditionArea[2])
             inputList.push(conditionArea); 
@@ -501,6 +515,9 @@ export class Table {
     }
 
     propModal(mainbutton: GlobalEventHandlers) {
+        var superThis = this
+        var inputList = new Array();    // 用来装input以便后边读取数值
+        var app = this.app
         mainbutton.disabled = true
 
         // 解析代码块中的现实的条件
@@ -516,8 +533,31 @@ export class Table {
 
         // 在操作面板下方新建一个操作区域
         var filterDiv = this.divOperate.createDiv()
-        var inputList = new Array();    // 用来装input以便后边读取数值
-        var app = this.app
+
+        var bulkButton = filterDiv.createEl("button")
+        bulkButton.setText("批量编辑属性")
+        bulkButton.onclick = function() {
+            // 解析代码块中的现实的条件
+            var condotions: Array<Array<string>> = new Array()
+            for (var line of superThis.source.split('\n')) {
+                var subConditions = new Array()
+                // 开头为prop:的不是条件
+                var lineList = line.split(":")
+                if (!line.startsWith("prop:") && !line.startsWith("sort:") && !line.startsWith("id:") && lineList.length>=3) {
+                    if (lineList.length > 3) {
+                        condotions.push([lineList[0], lineList[1] ,line.replace(`${lineList[0]}:${lineList[1]}:`, "")])
+                    }
+                    else {
+                        for (var item of lineList) {
+                            subConditions.push(item)
+                        }
+                        condotions.push(subConditions)
+                    }
+                }
+            }
+            new SelectedFileModal(superThis.app, condotions).open()
+        }
+
 
 		// 无刷新表单
 		filterDiv.createEl("iframe", {
@@ -529,6 +569,7 @@ export class Table {
 		})
         var filterConDiv = filterDiv.createDiv()
         var button = filterDiv.createEl("button")
+        var cancelbutton = filterDiv.createEl("button")
 
 		var form = filterConDiv.createEl("form", {
 			'attr': {
@@ -545,6 +586,11 @@ export class Table {
             inputList.push(conditionArea);
 
         }
+        cancelbutton.setText("取消编辑")
+        cancelbutton.onclick = function() {
+            filterDiv.remove()
+            mainbutton.disabled = false
+        }
 
         // 确认框
 		form.createEl("input", {
@@ -554,15 +600,11 @@ export class Table {
 				'value': '   确定    ',
 			}
 		})
-        
         for (var condition of oldConditions) {
             var conditionArea = add3SearchPropInput(propsList, condition)
             form.appendChild(conditionArea[3])
             inputList.push(conditionArea); 
         }
-
-
-        var superThis = this
         
         form.onsubmit = function(this){
             var newContent = ""
@@ -586,12 +628,11 @@ export class Table {
             superThis.updateCodeBlock(result)
             filterDiv.remove()
             // 重新渲染表格
-            // setInterval(() => {
-            //     superThis.buttonFresh.click()
-            // }, 500)
+            setInterval(() => {
+                superThis.buttonFresh.click()
+            }, 500)
             mainbutton.disabled = false
         }
-        
     }
 
     updateCodeBlock(content: string) {
