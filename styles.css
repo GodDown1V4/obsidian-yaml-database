@@ -48,35 +48,43 @@ button.kanbanMOC:hover {
 .modal-container .modal-content textarea {
 	height: 18rem !important;
   }
-
- 
-.block-language-yamledit>div>table{
+  
+.block-language-yamledit table{
 	overflow :auto;
 	box-shadow:none;
 	}
   
-.block-language-yamledit>div>table  tr th:first-child, 
-.block-language-yamledit>div>table  tr td:first-child {
-	  word-break: break-all;
-	  width: 12em;
-	  min-width: 12em;
-	  max-width: 18em;
-	  text-align: left;
+.block-language-yamledit table  tr th:first-child, 
+.block-language-yamledit table  tr td:first-child {
+	word-break: break-all;
+	width: 100%;
+	min-width: 6em;
+	max-width: 18em;
+	text-align: left;
 	  }
 	  
-.block-language-yamledit>div>table  tr th:not(first-child), 
-.block-language-yamledit>div>table  tr td:not(first-child) {
+.block-language-yamledit table  tr th:not(first-child), 
+.block-language-yamledit table  tr td:not(first-child) {
 	  word-break: break-all;
 	  width: 8em;
 	  min-width: 8em;
 	  max-width: 10em;
 	  text-align: center;
 	  }
-.block-language-yamledit>div>table  tr td:not(first-child) input{
+.block-language-yamledit>div>table  tr td:not(first-child) input[type=text] {
+		word-break: break-all;
+		width: 100%;
+	  }
+.block-language-yamledit>div>table  tr td:not(first-child) input[type=date] {
+		  word-break: break-all;
+		  width: 100%;
+		  min-width: 11em;
+		  text-align: left;
+	  }
+.block-language-yamledit table  tr td:not(first-child) input{
 	word-break: break-all;
-	width: 8em;
-	min-width: 8em;
-	max-width: 10em;
+	width: 7em;
+	min-width: 7em;
 	text-align: center;
 }
 
@@ -103,11 +111,11 @@ button.kanbanMOC:hover {
   }
 .block-language-yamledit  tr:hover td {
 	  background-color: var(--interactive-hover);
-	  color: #4d4d4d;
+	  color: var(--text-normal);
   }
 .block-language-yamledit  tr:hover td input{
 	background-color: var(--interactive-hover);
-	color: #4d4d4d;
+	color: var(--text-accent);
 }
   
    
