@@ -343,7 +343,12 @@ export class Table {
 			}
 		})
         var filterConDiv = filterDiv.createDiv()
-        var button = filterDiv.createEl("button")
+        var button = filterDiv.createEl("button", {
+            attr: {
+                "data-toggle": "tooltip",
+                "title":"添加新的筛选文档的条件"
+            }
+        })
         var cancelbutton = filterDiv.createEl("button")
 
 		var form = filterConDiv.createEl("form", {
@@ -352,7 +357,7 @@ export class Table {
 				'target': 'id_iframe',
 			}
 		})
-        button.setText("添加新的条件")
+        button.setText("➕")
         button.onclick = function() {
             var conditionArea = add3SearchInput(app)
             form.appendChild(conditionArea[3])
@@ -440,7 +445,12 @@ export class Table {
 			}
 		})
         var filterConDiv = sortDiv.createDiv()
-        var button = sortDiv.createEl("button")
+        var button = sortDiv.createEl("button", {
+            attr: {
+                "data-toggle": "tooltip",
+                "title":"添加新的排序条件"
+            }
+        })
         var cancelbutton = sortDiv.createEl("button")
 
 		var form = filterConDiv.createEl("form", {
@@ -449,7 +459,7 @@ export class Table {
 				'target': 'id_iframe',
 			}
 		})
-        button.setText("添加新的排序条件")
+        button.setText("➕")    
         var propsList = new Search(app).getYamlPropertiesNameOfTfiles(this.parseConditions())
         propsList.unshift("文件")
         button.onclick = function() {
@@ -568,7 +578,12 @@ export class Table {
 			}
 		})
         var filterConDiv = filterDiv.createDiv()
-        var button = filterDiv.createEl("button")
+        var button = filterDiv.createEl("button", {
+            attr: {
+                "data-toggle": "tooltip",
+                "title":"添加新的显示属性"
+            }
+        })
         var cancelbutton = filterDiv.createEl("button")
 
 		var form = filterConDiv.createEl("form", {
@@ -579,7 +594,7 @@ export class Table {
 		})
         var propsList = new Search(app).getYamlPropertiesNameOfTfiles(this.parseConditions())
 
-        button.setText("添加新的属性")
+        button.setText("➕")
         button.onclick = function() {
             var conditionArea = add3SearchPropInput(propsList)
             form.appendChild(conditionArea[3])

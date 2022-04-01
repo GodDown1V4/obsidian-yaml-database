@@ -808,8 +808,13 @@ export class SelectedFileModal extends Modal{
  */
  export function add3SearchInput(app:App, defaultValue: Array<string> = []) {
     var conDiv = document.createElement("div")
-    var deleteButton = conDiv.createEl("button")
-    deleteButton.innerHTML = "删除条件"
+    var deleteButton = conDiv.createEl("button",{
+        attr: {
+            "data-toggle": "tooltip",
+            "title":"删除该筛选条件"
+        }
+    })
+    deleteButton.innerHTML = "➖"
     /**
      * 搜索输入选框
      */
@@ -930,8 +935,13 @@ export class SelectedFileModal extends Modal{
  */
  export function add3SearchPropInput(headslist: Array<string>, defaultValue: Array<string> = []) {
     var conDiv = document.createElement("div")
-    var deleteButton = conDiv.createEl("button")
-    deleteButton.innerHTML = "删除属性显示"
+    var deleteButton = conDiv.createEl("button", {
+        attr: {
+            "data-toggle": "tooltip",
+            "title":"取消对该属性的显示"
+        }
+    })
+    deleteButton.innerHTML = "➖"
     /**
      * 搜索输入选框
      */
@@ -969,8 +979,13 @@ export class SelectedFileModal extends Modal{
  */
 export function add2SortInput(headslist: Array<string>, defaultValue: Array<string> = []) {
     var conDiv = document.createElement("div")
-    var deleteButton = conDiv.createEl("button")
-    deleteButton.innerHTML = "删除条件"
+    var deleteButton = conDiv.createEl("button", {
+        attr: {
+            "data-toggle": "tooltip",
+            "title":"删除该排序条件"
+        }
+    })
+    deleteButton.innerHTML = "➖"
     /**
      * 搜索输入选框
      */
