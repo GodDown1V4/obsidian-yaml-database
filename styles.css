@@ -45,8 +45,8 @@ button.kanbanMOC:hover {
 }
 
 
-.modal-container .modal-content textarea {
-	height: 18rem !important;
+.block-language-yamledit>div{
+	overflow :auto;
   }
   
 .block-language-yamledit table{
