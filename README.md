@@ -52,8 +52,11 @@
 
 这个插件是即可以批量编辑obsidian中文档的yaml，也可以像notion那样表格编辑的形式来编辑某个文档的某个yaml。
 
-- 批量编辑YAML：<img src="https://user-images.githubusercontent.com/39726621/161392925-2de339c6-3c65-4faf-a196-832774f80e61.png" alt="image" width="500px" />
-- 表格编辑YAML：<img src="https://user-images.githubusercontent.com/39726621/161393772-d50e0043-299a-45da-9cbd-15455827f30c.png" alt="image" width="500px" />
+- 批量编辑YAML： 
+<img src="https://user-images.githubusercontent.com/39726621/161392925-2de339c6-3c65-4faf-a196-832774f80e61.png" alt="image" width="500px" />
+
+- 表格编辑YAML：
+<img src="https://user-images.githubusercontent.com/39726621/161393772-d50e0043-299a-45da-9cbd-15455827f30c.png" alt="image" width="500px" />
 
 
 # 安装
@@ -145,8 +148,7 @@ id:在这里填写一个在当前页面所有的yamledit代码块中独一无二
 
 - `排序` `↑↓`（按照指定的排序条件进行排序，支持多条件排序，支持对文件和各属性按asc或desc排序）
 - `筛选`（和批量操作筛选文档的条件相同）
-![image](https://user-images.githubusercontent.com/39726621/161393268-548d5d42-4cd3-42c1-bde6-0df863dacce7.png)
-
+<img src="https://user-images.githubusercontent.com/39726621/161393268-548d5d42-4cd3-42c1-bde6-0df863dacce7.png" alt="image" width="500px" />
 ---
 
 后面3个按钮的进一步说明：
