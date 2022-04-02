@@ -753,59 +753,24 @@ export class Table {
                 "path": path,    // 文档路径
                 "name": lastValue,   // 修改前的值，用于判断当前值是否被修改
                 "list": prop,   // 当前属性
+                "style": "display:none"
             }
         })
-        switch (propType) {
-            case "checkbox": {
-                if (input.getAttr("name") == "true") {
-                    input.checked = true
-                }
-                else {
-                    input.checked = false
-                }
-                input.onclick = function(this: HTMLInputElement) {
-                    this.blur()
-                }
-            }; break;
-            case "img": {
-                input.value = datalist[i]
-                // 隐藏input
-                input.style.visibility = "hidden"
-                // 点击img会出现input
-                td.createEl("img", {
-                    attr: {
-                        "src" : input.getAttr("name")
-                    }
-                })
-                td.ondblclick = function(this: HTMLTableCellElement) {
-                    this.children[1].setAttr("style", "visibility:visible;")
-                }
-                // input.style.visibility = "visible"
-                
-            }; break;
-            case "date":{
-                input.value = datalist[i]
-                input.oninput = function(this: HTMLInputElement) {
-                    this.blur()
-                }
-            }; break;
-            case "time":{
-                input.value = datalist[i]
-                input.oninput = function(this: HTMLInputElement) {
-                    this.blur()
-                }
-            }; break;
-            default:input.value = datalist[i]; break;
-
+        td.onclick = function() {
+            console.log(2222)
+            input.setAttr("style", "display:true")
+            input.focus()
         }
-
+        this.solveInput(td, input)
         // 2、处理input失焦动作
         var app = this.app
+        var superThis = this
         input.onblur = function(this:HTMLInputElement) {
             var md = new MDIO(app, this.getAttr("path"))
             // 根据不同类型处理
             switch(this.getAttr("type")) {
                 case "checkbox": {
+                    input.setAttr("style", "")
                     if (this.getAttr("name")!=String(String(this.checked))){
                         this.setAttr("name", this.checked)   
                         // 有该属性则修改值
@@ -819,7 +784,6 @@ export class Table {
                     }
                 }; break;
                 case "img": {
-                    this.style.visibility = "hidden"
                     
                     if (this.parentElement.children[0].getAttr("src")!=this.value){
                         this.parentElement.children[0].setAttr("src", this.value)   
@@ -847,9 +811,61 @@ export class Table {
                     }
                 }break;
             }
+            input.setAttr("style", "display:none")
+            superThis.solveInput(td, input)
         }
         td.appendChild(input)
         return td
+    }
+
+    solveInput(td: HTMLTableCellElement, input: HTMLInputElement) {
+        td.empty()
+        switch (input.getAttr("type")) {
+            case "checkbox": {
+                input.setAttr("style", "")
+                if (input.getAttr("name") == "true") {
+                    input.checked = true
+                }
+                else {
+                    input.checked = false
+                }
+                input.onclick = function(this: HTMLInputElement) {
+                    this.blur()
+                }
+            }; break;
+            case "img": {
+                input.value = input.getAttr("name")
+                // 隐藏input
+                // 点击img会出现input
+                td.createEl("img", {
+                    attr: {
+                        "src" : input.getAttr("name")
+                    }
+                })
+                // input.style.visibility = "visible"
+                
+            }; break;
+            case "date":{
+                td.innerHTML = input.getAttr("name")
+                input.value = input.getAttr("name")
+                input.oninput = function(this: HTMLInputElement) {
+                    this.blur()
+                }
+            }; break;
+            case "time":{
+                td.innerHTML = input.getAttr("name")
+                input.value = input.getAttr("name")
+                input.oninput = function(this: HTMLInputElement) {
+                    this.blur()
+                }
+            }; break;
+            default:{
+                td.innerHTML = input.getAttr("name")
+                input.value = input.getAttr("name")
+            }; break;
+
+        }
+        td.appendChild(input)
     }
 
 }

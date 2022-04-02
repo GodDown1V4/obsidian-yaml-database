@@ -129,7 +129,7 @@ export class MDIO{
                     var oldContentList = oldContent.split("\n");
     
                     // 添加新属性
-                    oldContentList.splice(this.getYamlStartLine()+1, 0, `${newProperty}: ${value}`)
+                    oldContentList.splice(this.getYamlStartLine()+1, 0, `${newProperty}: '${value.replace(/'/g, '"')}'`)
                     var newContent = "";
                     for (var line of oldContentList) {
                         newContent = newContent + line + "\n";
@@ -145,7 +145,7 @@ export class MDIO{
             if (!this.hasProperty(newProperty)) {
                 this.app.vault.read(this.getTFile()).then(oldContent => {
                     // 添加新属性
-                    var newContent = `---\n${newProperty}: ${value}\n---\n` + oldContent;
+                    var newContent = `---\n${newProperty}: '${value.replace(/'/g, '"')}'\n---\n` + oldContent;
     
                     // 写入
                     this.write(newContent)
@@ -161,7 +161,12 @@ export class MDIO{
                 // 检测是否为禁止操作项？
                 if (bannedProp.split("\n").indexOf(oldProperty)==-1) {   // 不是禁止操作项
                     this.app.vault.read(this.getTFile()).then(oldContent => {
-                        var newContent = oldContent.replace(`\n${oldProperty}:`, `\n${newProperty}:`)
+                        if (oldContent.indexOf(`\n${oldProperty}: `)) {
+                            var newContent = oldContent.replace(`\n${oldProperty}:`, `\n${newProperty}:`)
+                        }
+                        else{
+                            var newContent = oldContent.replace(`\n${oldProperty}:`, `\n${newProperty}: `)
+                        }
                         
                         // 写入
                         this.write(newContent)
@@ -185,13 +190,13 @@ export class MDIO{
                         for (var line of oldContentList) {
                             lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
                             // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
-                            if (line.startsWith(Property)) {
+                            if (line.startsWith(Property + ":")) {
                                 break;
                             }
                         }
         
                         // 修改属性值
-                        oldContentList.splice(lineNo-1, 1, `${Property}: ${newValue}`)
+                        oldContentList.splice(lineNo-1, 1, `${Property}: '${newValue.replace(/'/g, '"')}'`)
                         var newContent = "";
                         for (var line of oldContentList) {
                             newContent = newContent + line + "\n";
@@ -218,13 +223,13 @@ export class MDIO{
                         for (var line of oldContentList) {
                             lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
                             // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
-                            if (line.startsWith(Property)) {
+                            if (line.startsWith(Property+":")) {
                                 break;
                             }
                         }
         
                         // 修改属性值
-                        oldContentList.splice(lineNo-1, 1, `${Property}: ${newValue}`)
+                        oldContentList.splice(lineNo-1, 1, `${Property}: '${newValue.replace(/'/g, '"')}'`)
                         var newContent = "";
                         for (var line of oldContentList) {
                             newContent = newContent + line + "\n";
@@ -251,7 +256,7 @@ export class MDIO{
                         for (var line of oldContentList) {
                             lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
                             // 第一次出现delProperty后开始进行操作，在这一行后面添加新行以输入属性和其值
-                            if (line.startsWith(delProperty)) {
+                            if (line.startsWith(delProperty + ":")) {
                                 break;
                             }
                         }
