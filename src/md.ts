@@ -1,5 +1,36 @@
 import { App, FrontMatterCache, Notice, TFile } from "obsidian";
-import { bannedProp, bannedFolder, bannedPropInTable } from "main";
+import { bannedProp, bannedFolder } from "main";
+
+// 历史操作记录，从加载插件开始运行
+export class YamlChangeHistory {
+    app: App
+    info: Array<string>
+
+    constructor(app: App, info: Array<string>) {
+        this.app = app
+        this.info = info
+    }
+
+    restore() {
+        var md = new MDIO(this.app, this.info[0])
+        switch(this.info[1]) {
+            case "add": md.delProperty(this.info[2]); break;
+            case "del": md.addProperty(this.info[2], this.info[3]); break;
+            case "updateName": md.updatePropertyName(this.info[2], this.info[3]); break;
+            case "updateValue": md.updatePropertyValue(this.info[2], this.info[3]); break;
+            default: break;
+        }
+    }
+}
+
+// export var yamlChangeHistory = [
+//     ["文档路径", "add", "propertyName"],
+//     ["文档路径", "del", "propertyName"],
+//     ["文档路径", "updateName", "propertyName", "oldName"],
+//     ["文档路径", "updateValue", "propertyName", "oldValue"],
+// ]
+export var allYamlChangeHistory: Array<Array<YamlChangeHistory>> = new Array()
+export var oneOperationYamlChangeHistory: Array<YamlChangeHistory> = new Array()
 
 export class MDIO{
     app:App;
@@ -137,6 +168,7 @@ export class MDIO{
     
                     // 写入
                     this.write(newContent)
+                    oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "add", newProperty]))
                 });
             }
         }
@@ -149,6 +181,7 @@ export class MDIO{
     
                     // 写入
                     this.write(newContent)
+                    oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "add", newProperty]))
                 });
             }
         }
@@ -170,6 +203,7 @@ export class MDIO{
                         
                         // 写入
                         this.write(newContent)
+                        oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "updateName", newProperty, oldProperty]))
                     });
                 }
             }
@@ -187,16 +221,24 @@ export class MDIO{
                         // 找到Property的行号
                         var oldContentList = oldContent.split("\n");
                         var lineNo = 0;
+                        var startLine = 0;
+                        var endLine = 0;
                         for (var line of oldContentList) {
                             lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
                             // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
-                            if (line.startsWith(Property + ":")) {
+                            if (line.startsWith(Property + ":") && !startLine) {
+                                startLine = lineNo
+                            }
+                            else if ((line.search(/^.*?:/g)!=-1 || line.search('---')!=-1) && startLine) {
+                                endLine = lineNo
                                 break;
                             }
                         }
+                        // 获取旧值以提供撤销依据
+                        var oldValue = this.getPropertyValue(Property)
         
                         // 修改属性值
-                        oldContentList.splice(lineNo-1, 1, `${Property}: '${newValue.replace(/'/g, '"')}'`)
+                        oldContentList.splice(startLine-1, endLine-startLine, `${Property}: '${newValue.replace(/'/g, '"')}'`)
                         var newContent = "";
                         for (var line of oldContentList) {
                             newContent = newContent + line + "\n";
@@ -204,6 +246,9 @@ export class MDIO{
         
                         // 写入
                         this.write(newContent)
+                        oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "updateValue", Property, oldValue]))
+                        allYamlChangeHistory.length = 0
+                        allYamlChangeHistory.push(oneOperationYamlChangeHistory)
                     });
                 }
             }
@@ -214,31 +259,37 @@ export class MDIO{
         if (this.hasYaml()) {
             // 是否存在该属性？
             if (this.hasProperty(Property)) {
-                // 检测是否为禁止操作项？
-                if (bannedProp.split("\n").indexOf(Property)==-1) {   // 不是禁止操作项
-                    this.app.vault.read(this.getTFile()).then(oldContent => {
-                        // 找到Property的行号
-                        var oldContentList = oldContent.split("\n");
-                        var lineNo = 0;
-                        for (var line of oldContentList) {
-                            lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
-                            // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
-                            if (line.startsWith(Property+":")) {
-                                break;
-                            }
+                this.app.vault.read(this.getTFile()).then(oldContent => {
+                    // 找到Property的行号
+                    var oldContentList = oldContent.split("\n");
+                    var lineNo = 0;
+                    var startLine = 0;
+                    var endLine = 0;
+                    for (var line of oldContentList) {
+                        lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
+                        // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
+                        if (line.startsWith(Property + ":") && !startLine) {
+                            startLine = lineNo
                         }
-        
-                        // 修改属性值
-                        oldContentList.splice(lineNo-1, 1, `${Property}: '${newValue.replace(/'/g, '"')}'`)
-                        var newContent = "";
-                        for (var line of oldContentList) {
-                            newContent = newContent + line + "\n";
+                        else if ((line.search(/^.*?:/g)!=-1 || line.search('---')!=-1) && startLine) {
+                            endLine = lineNo
+                            break;
                         }
-        
-                        // 写入
-                        this.write(newContent)
-                    });
-                }
+                    }
+                    // 获取旧值以提供撤销依据
+                    var oldValue = this.getPropertyValue(Property)
+    
+                    // 修改属性值
+                    oldContentList.splice(startLine-1, endLine-startLine, `${Property}: '${newValue.replace(/'/g, '"')}'`)
+                    var newContent = "";
+                    for (var line of oldContentList) {
+                        newContent = newContent + line + "\n";
+                    }
+    
+                    // 写入
+                    this.write(newContent)
+                    oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "updateValue", Property, oldValue]))
+                });
             }
         }
 	}
@@ -253,16 +304,24 @@ export class MDIO{
                         // 找到delProperty的行号
                         var oldContentList = oldContent.split("\n");
                         var lineNo = 0;
+                        var startLine = 0;
+                        var endLine = 0;
                         for (var line of oldContentList) {
                             lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
-                            // 第一次出现delProperty后开始进行操作，在这一行后面添加新行以输入属性和其值
-                            if (line.startsWith(delProperty + ":")) {
+                            // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
+                            if (line.startsWith(delProperty + ":") && !startLine) {
+                                startLine = lineNo
+                            }
+                            else if ((line.search(/^.*?:/g)!=-1 || line.search('---')!=-1) && startLine) {
+                                endLine = lineNo
                                 break;
                             }
                         }
+                        // 获取旧值以提供撤销依据
+                        var oldValue = this.getPropertyValue(delProperty)
         
                         // 删除该属性
-                        oldContentList.splice(lineNo-1, 1);
+                        oldContentList.splice(startLine-1, endLine-startLine);
                         var newContent = "";
                         for (var line of oldContentList) {
                             newContent = newContent + line + "\n";
@@ -270,6 +329,7 @@ export class MDIO{
         
                         // 写入
                         this.write(newContent)
+                        oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "del", delProperty, oldValue]))
                     });
                 }
             }

@@ -1,6 +1,6 @@
 import { Modal, App, TFile, Notice, MarkdownPostProcessorContext} from "obsidian";
 import { MDIO, Search } from "src/md";
-import { bannedPropInTable, hiddenPropInTable} from "main";
+import { hiddenPropInTable} from "main";
 import { createInputWithChoice,add3SearchInput, add2SortInput, add3SearchPropInput, SelectedFileModal } from "src/modal"
 
 var buttonConut = true
@@ -13,6 +13,7 @@ export var admittedType = [
     "time",
     "checkbox",
     "img",
+    "url",
 ]
 
 export class Table {
@@ -33,6 +34,8 @@ export class Table {
         this.source = source;
         this.el = el;
         this.context = context;
+
+        el.empty()
 
         // 操作区域
         this.divOperate = el.createDiv({
@@ -98,17 +101,6 @@ export class Table {
      * 解析source
      * ================================================================
      */
-    /**
-     * ！！这要求用户使用时必须在代码块中创建ID！！
-     * @returns 返回ID
-     */
-    parseID(): string {
-        for (var line of this.source.split('\n')) {
-            if (line.startsWith("id:")) {
-                return line.replace("id:", "")
-            }
-        }
-    }
 
     /**
      * 解析属性
@@ -726,13 +718,7 @@ export class Table {
                 td.innerHTML = `<a class="internal-link" data-hredf="${datalist[i]}" href="${datalist[i]}" target="_blank" rel="noopener">${datalist[i].split('/').pop().replace(".md", "")}</a>`
             }
             else {
-                if (bannedPropInTable.split("\n").indexOf(headslist[i][0])==-1) {
-                    td = this.createInput(td, headslist[i], datalist, i)
-                }
-                else{
-                    // 重要属性不可编辑！！
-                    td.innerHTML = datalist[i]
-                }
+                td = this.createInput(td, headslist[i], datalist, i)
             }
             
             tr.appendChild(td)
@@ -757,9 +743,15 @@ export class Table {
             }
         })
         td.onclick = function() {
-            console.log(2222)
-            input.setAttr("style", "display:true")
-            input.focus()
+            if (input.getAttr("type") == "text") {
+
+            }
+            else {
+                td.empty() 
+                td.appendChild(input)
+                input.setAttr("style", "display:true")
+                input.focus()
+            }
         }
         this.solveInput(td, input)
         // 2、处理input失焦动作
@@ -769,47 +761,19 @@ export class Table {
             var md = new MDIO(app, this.getAttr("path"))
             // 根据不同类型处理
             switch(this.getAttr("type")) {
-                case "checkbox": {
-                    input.setAttr("style", "")
-                    if (this.getAttr("name")!=String(String(this.checked))){
-                        this.setAttr("name", this.checked)   
-                        // 有该属性则修改值
-                        if (md.hasProperty(this.getAttr("list"))) {
-                            md.tableUpdateProperty(this.getAttr("list"), String(this.checked))
-                        }
-                        // 没有该属性则新建该属性并赋值
-                        else {
-                            md.addProperty(this.getAttr("list"), String(this.checked))
-                        }
-                    }
-                }; break;
-                case "img": {
-                    
-                    if (this.parentElement.children[0].getAttr("src")!=this.value){
-                        this.parentElement.children[0].setAttr("src", this.value)   
-                        // 有该属性则修改值
-                        if (md.hasProperty(this.getAttr("list"))) {
-                            md.tableUpdateProperty(this.getAttr("list"), this.value)
-                        }
-                        // 没有该属性则新建该属性并赋值
-                        else {
-                            md.addProperty(this.getAttr("list"), this.value)
-                        }
-                    }
-                }break;
-                default: {
-                    if (this.getAttr("name")!=this.value){
-                        this.setAttr("name", this.value)   
-                        // 有该属性则修改值
-                        if (md.hasProperty(this.getAttr("list"))) {
-                            md.tableUpdateProperty(this.getAttr("list"), this.value)
-                        }
-                        // 没有该属性则新建该属性并赋值
-                        else {
-                            md.addProperty(this.getAttr("list"), this.value)
-                        }
-                    }
-                }break;
+                case "checkbox": var newValue:string = String(this.checked); break;
+                default: var newValue:string = this.value; break;
+            }
+            if (String(this.getAttr("name"))!=newValue){
+                this.setAttr("name", newValue)   
+                // 有该属性则修改值
+                if (md.hasProperty(this.getAttr("list"))) {
+                    md.tableUpdateProperty(this.getAttr("list"), newValue)
+                }
+                // 没有该属性则新建该属性并赋值
+                else {
+                    md.addProperty(this.getAttr("list"), newValue)
+                }
             }
             input.setAttr("style", "display:none")
             superThis.solveInput(td, input)
@@ -835,14 +799,20 @@ export class Table {
             }; break;
             case "img": {
                 input.value = input.getAttr("name")
-                // 隐藏input
-                // 点击img会出现input
                 td.createEl("img", {
                     attr: {
                         "src" : input.getAttr("name")
                     }
                 })
-                // input.style.visibility = "visible"
+                
+            }; break;
+            case "url": {
+                input.value = input.getAttr("name")
+                td.createEl("a", {
+                    attr: {
+                        "href" : input.getAttr("name")
+                    }
+                }).innerHTML = input.value
                 
             }; break;
             case "date":{
@@ -859,11 +829,34 @@ export class Table {
                     this.blur()
                 }
             }; break;
+            case "text":{
+                td.innerHTML = input.getAttr("name")
+                input.value = input.getAttr("name")
+                td.setAttr("contenteditable", "true")
+                var superThis = this
+                var app = this.app
+                td.onblur = function () {
+                    var newValue = td.innerHTML.replace(/<input.*/g, "")
+                    var md = new MDIO(app, input.getAttr("path"))
+                    if (String(input.getAttr("name"))!=newValue){
+                        input.setAttr("name", newValue)   
+                        // 有该属性则修改值
+                        if (md.hasProperty(input.getAttr("list"))) {
+                            md.tableUpdateProperty(input.getAttr("list"), newValue)
+                        }
+                        // 没有该属性则新建该属性并赋值
+                        else {
+                            md.addProperty(input.getAttr("list"), newValue)
+                        }
+                    }
+                    input.setAttr("style", "display:none")
+                    superThis.solveInput(td, input)
+                }
+            }; break;
             default:{
                 td.innerHTML = input.getAttr("name")
                 input.value = input.getAttr("name")
             }; break;
-
         }
         td.appendChild(input)
     }

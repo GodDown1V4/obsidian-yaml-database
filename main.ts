@@ -1,13 +1,13 @@
 import { Table } from 'src/table';
-import { App, MarkdownPostProcessorContext, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, MarkdownPostProcessorContext, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { MainModal } from "src/modal";
+import { allYamlChangeHistory } from 'src/md';
 
 // 定义插件里需要保存、用到的变量
 interface MyPluginSettings {
 	importantProp: string;
 	hiddenPropInTable: string;
 	bannedFolder: string;
-	bannedPropInTable: string;
 }
 
 // 定义 DEFAULT_SETTINGS 并使用接口设置（DEFAULT_SETTINGS会在后边的插件主功能中的“loadSettings”（加载设置）中用到）
@@ -15,7 +15,6 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	importantProp: '',
 	hiddenPropInTable: '',
 	bannedFolder: '',
-	bannedPropInTable: '',
 }
 
 
@@ -36,6 +35,22 @@ export default class MyPlugin extends Plugin {
 				new MainModal(this.app).open();
 			}
 		});
+		// 命令：撤销
+		//  撤销上一步操作
+		this.addCommand({
+			id: 'yaml-bulk-edit-cancel',
+			name: '还原上一步操作',
+			callback: () => {
+				for (var item of allYamlChangeHistory.pop()) {
+					item.restore()
+				}
+				// 清理以使其只保持50条操作记录
+				while (allYamlChangeHistory.length>50) {
+					allYamlChangeHistory.shift()
+				}
+				// new MainModal(this.app).open();
+			}
+		});
 
 		this.registerMarkdownCodeBlockProcessor(
 			'yamledit',
@@ -44,7 +59,18 @@ export default class MyPlugin extends Plugin {
 				el: HTMLElement,
 				context: MarkdownPostProcessorContext
 			) => {
-				new Table(this.app, source, el, context);
+				var hasID = false
+				for (var line of source.split('\n')) {
+					// 有id值才会渲染
+					if (line.startsWith("id:") && line.replace("id:", "")) {
+						new Table(this.app, source, el, context);
+						hasID = true
+						break;
+					}
+				}
+				if (!hasID) {
+					el.createDiv().innerHTML = "请按照下列形式为代码块添加id: <br><blockquote>```yamledit<br>id:在这里填写一个在当前页面所有的yamledit代码块中独一无二id值<br>```</blockquote>"
+				}
 			}
 		)
 	}
@@ -60,7 +86,6 @@ export default class MyPlugin extends Plugin {
 		bannedProp = this.settings.importantProp;
 		hiddenPropInTable = this.settings.hiddenPropInTable;
 		bannedFolder = this.settings.bannedFolder;
-		bannedPropInTable = this.settings.bannedPropInTable;
 	}
 
 	// 异步：保存设置
@@ -121,18 +146,6 @@ class SettingTab extends PluginSettingTab {
 
 		containerEl.createEl('h3', {text: '表格编辑设置'});
 		
-		// 新建一个设置选项
-		new Setting(containerEl)
-		.setName('禁止修改的属性名称')
-		.setDesc('一个属性占一行, 添加新的参数就换一行。（不要写多余的空格）')
-		.addTextArea(text => text
-			.setPlaceholder('请输入')
-			.setValue(this.plugin.settings.bannedPropInTable)
-			.onChange(async (value) => {
-				this.plugin.settings.bannedPropInTable = value;
-				bannedPropInTable = this.plugin.settings.bannedPropInTable
-				await this.plugin.saveSettings();
-			}));
 		new Setting(containerEl)
 			.setName('隐藏的属性名称')
 			.setDesc('一个属性占一行, 添加新的参数就换一行。（注意: 如果您在yamledit中仍然选择显示某个被隐藏的属性的话, 那么该属性会被显示）（不要写多余的空格）')
@@ -151,5 +164,4 @@ class SettingTab extends PluginSettingTab {
 // 暴露
 export var bannedProp: string
 export var bannedFolder: string
-export var bannedPropInTable: string
 export var hiddenPropInTable: string
