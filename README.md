@@ -5,6 +5,8 @@
 > 请在使用前备份数据！！
 >
 > 请在使用前备份数据！！
+> 
+> 当您误操作数据后，请使用命令`YAML属性批量管理: 还原上一步操作`来还原操作。
 
 # 目录
 
@@ -46,12 +48,12 @@
 
 > 我不太会CSS，表格样式的代码是QQ群的`Cuman`老哥按我的要求帮忙提供的，感谢！！
 
+插件的Github链接：https://github.com/1657744680/obsidian-yaml-bulk-edit
+
 这个插件是即可以批量编辑obsidian中文档的yaml，也可以像notion那样表格编辑的形式来编辑某个文档的某个yaml。
 
-- 批量编辑YAML：<img src="https://user-images.githubusercontent.com/39726621/160730190-85380500-7e90-4f3c-ac01-7061f9a04466.png" alt="image" width="500px" />
-- 表格编辑YAML：![20220329_193316 mp4_20220330_085632](https://user-images.githubusercontent.com/39726621/160730119-ec395e47-ca83-4d82-b446-feaca0002d5d.gif)
-
-插件的Github链接：https://github.com/1657744680/obsidian-yaml-bulk-edit
+- 批量编辑YAML：<img src="https://user-images.githubusercontent.com/39726621/161392925-2de339c6-3c65-4faf-a196-832774f80e61.png" alt="image" width="500px" />
+- 表格编辑YAML：<img src="https://user-images.githubusercontent.com/39726621/161393772-d50e0043-299a-45da-9cbd-15455827f30c.png" alt="image" width="500px" />
 
 
 # 安装
@@ -93,7 +95,8 @@
    3. `标签`——`包含/不包含`——`标签名`
    4. `文件名称`——`符合/不符合`——`正则表达式`
    5. `文件路径`——`符合/不符合`——`正则表达式`
-   <img src="https://user-images.githubusercontent.com/39726621/160273310-6ac1ec25-ee74-430e-bc2d-901ca57b047d.png" alt="image" width="500px" />
+<img src="https://user-images.githubusercontent.com/39726621/161392999-2c20f1bc-04a6-4265-b1fb-416ecf73a9a7.png" alt="image" width="500px" />
+
 3. 点击确定后进入到**面板②**，这里会展示筛选的文档，当您确认文档符合要求后可选择具体操作进行下一步（如果发现显示的文档并不符合您的预期要求，那么您可以进一步选择或者关闭当前面板回到面板①重新设置条件）。可选择的操作有：
    1. `添加新属性`
    2. `修改属性名`
@@ -101,12 +104,14 @@
    4. `删除属性`
    5. `删除整个YAML`
    6. `清理控制属性`（可能需要多点几下）
-       <img src="https://user-images.githubusercontent.com/39726621/160343219-2af7c4eb-143b-4d08-bbc1-cc2c636437e7.png" alt="image" width="500px" />
-4. 点击具体操作后进入到**面板③**，在这里输入值来进行最后一步的操作。请谨慎操作！！确认输入无误后点击确定即可提交。
-  <img src="https://user-images.githubusercontent.com/39726621/160273284-614702eb-bc59-4dfc-937a-3f55a799c1e0.png" alt="image" width="500px" />
+<img src="https://user-images.githubusercontent.com/39726621/161393141-459d1bb8-e466-4cb5-a650-9075a2daf96b.png" alt="image" width="500px" />
+
+4. 点击具体操作后进入到**面板③**，在这里输入值来进行最后一步的操作。请谨慎操作！！确认输入无误后点击确定即可提交。当您误操作数据后，请使用命令YAML属性批量管理: 还原上一步操作来还原操作。
+<img src="https://user-images.githubusercontent.com/39726621/160273284-614702eb-bc59-4dfc-937a-3f55a799c1e0.png" alt="image" width="500px" />
+
 5. 到这里就完成批量修改操作了。
 6. 您可以使用命令`还原上一步操作`来还原批量操作
-6. 批量编辑设置项
+7. 批量编辑设置项
    1. `禁止删除和修改的名称属性`：对于十分重要的yaml属性值，为了避免对这些重要的属性值造成误删、误改，可以将他们添加到此。（一行一个属性，多个属性请换行）<img src="https://user-images.githubusercontent.com/39726621/160730853-8372818b-8bcc-4f66-afa7-af71987895fb.png" alt="image" width="500px" />
    2. `忽略的文件或文件夹路径`：输入基于库的路径，路径开头不要加`/`，（一行一个路径，多个路径请换行）<img src="https://user-images.githubusercontent.com/39726621/160730894-f701ee0a-775a-47ad-8ac9-292885251f32.png" alt="image" width="500px" />
 
@@ -140,6 +145,7 @@ id:在这里填写一个在当前页面所有的yamledit代码块中独一无二
 
 - `排序` `↑↓`（按照指定的排序条件进行排序，支持多条件排序，支持对文件和各属性按asc或desc排序）
 - `筛选`（和批量操作筛选文档的条件相同）
+![image](https://user-images.githubusercontent.com/39726621/161393268-548d5d42-4cd3-42c1-bde6-0df863dacce7.png)
 
 ---
 
