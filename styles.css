@@ -50,7 +50,8 @@ button.kanbanMOC:hover {
   }
   
 .block-language-yamledit table{
-	overflow :auto;
+	overflow :auto!important;
+	width: unset!important;
 	box-shadow:none;
 	}
   
@@ -107,7 +108,7 @@ button.kanbanMOC:hover {
 	  border-bottom: 1px solid #ccccccad;
   }
 .block-language-yamledit table  > tr:last-child > td {
-	  border-bottom: 2px solid #b3b3b3;
+	  border-bottom: 0px;
   }
 .block-language-yamledit  tr:hover td {
 	  background-color: var(--interactive-hover);
@@ -127,3 +128,97 @@ button.kanbanMOC:hover {
  div.tableOpreate input {
 	 max-width: 30%;
  }
+
+
+ 
+ /* 首列表格固定*/
+
+ body.theme-light .block-language-yamledit table  tr td:first-child {
+     position: sticky;
+     left: 0;
+     right: 0px;
+  background-color:#ffffff4d;
+ }
+
+ body.theme-dark .block-language-yamledit table  tr td:first-child {
+  position: sticky;
+  left: 0;
+  right: 0px;
+  background-color:#2e2e2e4d;
+ }
+ /* 表格滚动条*/
+.block-language-yamledit>div::-webkit-scrollbar-track{
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  border-radius: 10px;
+  background-color: var(--background-modifier-border);
+}
+.block-language-yamledit>div::-webkit-scrollbar-thumb{
+  -webkit-box-shadow: inset 0 0 8px rgba(0,0,0,.3);
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  background:var(--background-secondary-alt);
+}
+
+
+ /* 表格操作区域按钮 选择 输入框等样式*/
+select.kanbanMOC {
+	color: var(--text-normal);
+	background:var(--background-secondary);  
+	  height:28px;  
+	  width:180px;  
+	  line-height:28px;  
+	  border:1px solid var(--background-modifier-border);  
+	  -moz-border-radius:2px;  
+	  -webkit-border-radius:2px;  
+	  border-radius:2px; 
+  }
+  
+  .tableOpreate input
+  {
+	 height:28px;  
+	outline-style: none ;
+	border:1px solid var(--background-modifier-border);  
+	background:var(--background-secondary);  
+	font-size:14px;
+  }
+  .tableOpreate input[type='submit']
+  {
+	display: inline-block;
+	border-radius: 4px;
+	background-color: var(--text-accent);
+	color:rgba(245, 245, 225, 0.952);
+	border: none;
+	text-align: center;
+	cursor: pointer;
+	margin: 5px;
+  }
+  
+  .tableOpreate button
+  {
+	
+	background-color: rgb(var(--text-muted-rgb),0.2);
+	border-radius: 4px;
+	margin: 4px;
+  }
+  
+  .tableOpreate input[type='submit']:hover
+  {
+	outline: none;
+	background-color: var(--text-accent-hover);
+  }
+  
+  select.kanbanMOC:focus {
+	outline: none;
+  }
+  
+  .tableOpreate>div button:last-child:hover
+  {
+	background-color: #ffb700c2;
+  }
+  .tableOpreate>div button:nth-last-child(2):hover
+  {
+	background-color: var(--background-modifier-success);
+  }
+  .tableOpreate>div button:first-child:hover
+  {
+	background-color: #e7bb4d94;
+  }
