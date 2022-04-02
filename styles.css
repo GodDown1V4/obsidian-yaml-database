@@ -121,8 +121,8 @@ button.kanbanMOC:hover {
   
    
 
- td img {
-	 max-height: 100px;
+.block-language-yamledit td img {
+	max-width: min(100%, 100px);
  }
 
  div.tableOpreate input {
@@ -164,7 +164,7 @@ select.kanbanMOC {
 	color: var(--text-normal);
 	background:var(--background-secondary);  
 	  height:28px;  
-	  width:180px;  
+	  width:80px;  
 	  line-height:28px;  
 	  border:1px solid var(--background-modifier-border);  
 	  -moz-border-radius:2px;  
