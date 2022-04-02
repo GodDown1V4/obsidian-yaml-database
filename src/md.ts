@@ -215,8 +215,49 @@ export class MDIO{
         if (this.hasYaml()) {
             // 是否存在该属性？
             if (this.hasProperty(Property)) {
+                this.app.vault.read(this.getTFile()).then(oldContent => {
+                    // 找到Property的行号
+                    var oldContentList = oldContent.split("\n");
+                    var lineNo = 0;
+                    var startLine = 0;
+                    var endLine = 0;
+                    for (var line of oldContentList) {
+                        lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
+                        // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
+                        if (line.startsWith(Property + ":") && !startLine) {
+                            startLine = lineNo
+                        }
+                        else if ((line.search(/^.*?:/g)!=-1 || line.search('---')!=-1) && startLine) {
+                            endLine = lineNo
+                            break;
+                        }
+                    }
+                    // 获取旧值以提供撤销依据
+                    var oldValue = this.getPropertyValue(Property)
+    
+                    // 修改属性值
+                    oldContentList.splice(startLine-1, endLine-startLine, `${Property}: '${newValue.replace(/'/g, '"')}'`)
+                    var newContent = "";
+                    for (var line of oldContentList) {
+                        newContent = newContent + line + "\n";
+                    }
+    
+                    // 写入
+                    this.write(newContent)
+                    allYamlChangeHistory.length = 0
+                    oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "updateValue", Property, oldValue]))
+                    allYamlChangeHistory.push(oneOperationYamlChangeHistory)
+                });
+            }
+        }
+	}
+    // 为当前文档更新属性值
+	updatePropertyValue(Property:string, newValue:string) {
+        if (this.hasYaml()) {
+            // 是否存在该属性？
+            if (this.hasProperty(Property)) {
                 // 检测是否为禁止操作项？
-                if (bannedPropInTable.split("\n").indexOf(Property)==-1) {   // 不是禁止操作项
+                if (bannedProp.split("\n").indexOf(Property)==-1) {   // 不是禁止操作项
                     this.app.vault.read(this.getTFile()).then(oldContent => {
                         // 找到Property的行号
                         var oldContentList = oldContent.split("\n");
@@ -247,49 +288,8 @@ export class MDIO{
                         // 写入
                         this.write(newContent)
                         oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "updateValue", Property, oldValue]))
-                        allYamlChangeHistory.length = 0
-                        allYamlChangeHistory.push(oneOperationYamlChangeHistory)
                     });
                 }
-            }
-        }
-	}
-    // 为当前文档更新属性值
-	updatePropertyValue(Property:string, newValue:string) {
-        if (this.hasYaml()) {
-            // 是否存在该属性？
-            if (this.hasProperty(Property)) {
-                this.app.vault.read(this.getTFile()).then(oldContent => {
-                    // 找到Property的行号
-                    var oldContentList = oldContent.split("\n");
-                    var lineNo = 0;
-                    var startLine = 0;
-                    var endLine = 0;
-                    for (var line of oldContentList) {
-                        lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
-                        // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
-                        if (line.startsWith(Property + ":") && !startLine) {
-                            startLine = lineNo
-                        }
-                        else if ((line.search(/^.*?:/g)!=-1 || line.search('---')!=-1) && startLine) {
-                            endLine = lineNo
-                            break;
-                        }
-                    }
-                    // 获取旧值以提供撤销依据
-                    var oldValue = this.getPropertyValue(Property)
-    
-                    // 修改属性值
-                    oldContentList.splice(startLine-1, endLine-startLine, `${Property}: '${newValue.replace(/'/g, '"')}'`)
-                    var newContent = "";
-                    for (var line of oldContentList) {
-                        newContent = newContent + line + "\n";
-                    }
-    
-                    // 写入
-                    this.write(newContent)
-                    oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "updateValue", Property, oldValue]))
-                });
             }
         }
 	}
