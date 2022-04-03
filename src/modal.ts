@@ -4,6 +4,7 @@ import { bannedProp } from "main";
 import { admittedType } from "src/table"
  
 export var conditionNameCount = 0;
+
 /**
  * 1、主面板
  * 筛选条件
@@ -957,24 +958,30 @@ export class SelectedFileModal extends Modal{
     /**
      * 搜索输入选框
      */
-    if (defaultValue.length == 3) {
+    if (defaultValue.length == 4) {
         var input1 = createSelectWithChoice(defaultValue[0],headslist)
         var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,defaultValue[1],[])
         var input3 = createSelectWithChoice(defaultValue[2],admittedType)
+        // 这里是属性栏宽度输入框
+        var [input4,searchResult4] = createInputWithChoice(conditionNameCount++, defaultValue[3], [])
     }
     else {
-        var input1 = createSelectWithChoice("",headslist)
-        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,input1.value,[])
-        var input3 = createSelectWithChoice("text",admittedType)
+        var input1 = createSelectWithChoice("",headslist)   // 属性名
+        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,input1.value,[])    // 属性显示名称
+        var input3 = createSelectWithChoice("text",admittedType)    // 属性指定类型
+        // 默认属性宽度为200px
+        var [input4,searchResult4] = createInputWithChoice(conditionNameCount++, "200px", [])
     }
     conDiv.appendChild(input1)
     conDiv.appendChild(input2)
     conDiv.appendChild(input3)
+    conDiv.appendChild(input4)
 
     deleteButton.onclick = function() {
         input1.value = ""
         input2.value = ""
         input3.value = ""
+        input4.value = ""
         conDiv.remove()
     }
 
@@ -984,7 +991,7 @@ export class SelectedFileModal extends Modal{
     input1.oninput = function() {
         input2.value = input1.value
     }
-    return [input1, input2, input3, conDiv]
+    return [input1, input2, input3, input4, conDiv]
 }
 /**
  * 创建2个输入搜索框（也可能是2个搜索输入框+1个文字输入框）

@@ -1,5 +1,5 @@
 import { Table } from 'src/table';
-import { App, MarkdownPostProcessorContext, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, MarkdownPostProcessorContext, Modal, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { MainModal } from "src/modal";
 import { allYamlChangeHistory } from 'src/md';
 
@@ -23,6 +23,7 @@ export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
 	// 异步：加载插件
 	async onload() {
+
 		await this.loadSettings();
 		this.addSettingTab(new SettingTab(this.app, this));
 		
@@ -161,6 +162,7 @@ class SettingTab extends PluginSettingTab {
 				}));
 	}
 }
+
 
 // 暴露
 export var bannedProp: string

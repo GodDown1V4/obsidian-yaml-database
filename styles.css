@@ -58,7 +58,7 @@ button.kanbanMOC:hover {
 .block-language-yamledit table  tr th:first-child, 
 .block-language-yamledit table  tr td:first-child {
 	word-break: break-all;
-	width: 100%;
+	/* width: 100%; */
 	min-width: 6em;
 	max-width: 18em;
 	text-align: left;
@@ -67,9 +67,9 @@ button.kanbanMOC:hover {
 .block-language-yamledit table  tr th:not(first-child), 
 .block-language-yamledit table  tr td:not(first-child) {
 	  word-break: break-all;
-	  width: 8em;
-	  min-width: 8em;
-	  max-width: 10em;
+	  /* width: 8em; */
+	  /* min-width: 8em; */
+	  /* max-width: 10em; */
 	  text-align: center;
 	  }
 .block-language-yamledit>div>table  tr td:not(first-child) input[type=text] {
@@ -84,8 +84,8 @@ button.kanbanMOC:hover {
 	  }
 .block-language-yamledit table  tr td:not(first-child) input{
 	word-break: break-all;
-	width: 7em;
-	min-width: 7em;
+	/* width: 7em;
+	min-width: 7em; */
 	text-align: center;
 }
 
@@ -123,6 +123,7 @@ button.kanbanMOC:hover {
 
 .block-language-yamledit td img {
 	max-width: min(100%, 100px);
+	max-width: min(100%);
  }
 
  div.tableOpreate input {

@@ -46,6 +46,8 @@
 
 > **若您在0.1.1之前使用过当前插件，则需要按照说明对设置项进行修改。**
 
+> 若您在0.5.1及0.5.1之前使用过该插件，则需要删除yamledit代码块中开头为`prop:`的一行，若您出现无法打开表格所在文档的情况，请使用其它应用打开文档删除yamledit代码块中开头为`prop:`的一行。
+
 > 我不太会CSS，表格样式的代码是QQ群的`Cuman`老哥按我的要求帮忙提供的，感谢！！
 
 插件的Github链接：https://github.com/1657744680/obsidian-yaml-bulk-edit
@@ -98,7 +100,7 @@
    3. `标签`——`包含/不包含`——`标签名`
    4. `文件名称`——`符合/不符合`——`正则表达式`
    5. `文件路径`——`符合/不符合`——`正则表达式`
-<img src="https://user-images.githubusercontent.com/39726621/161392999-2c20f1bc-04a6-4265-b1fb-416ecf73a9a7.png" alt="image" width="500px" />
+   <img src="https://user-images.githubusercontent.com/39726621/161392999-2c20f1bc-04a6-4265-b1fb-416ecf73a9a7.png" alt="image" width="500px" />
 
 3. 点击确定后进入到**面板②**，这里会展示筛选的文档，当您确认文档符合要求后可选择具体操作进行下一步（如果发现显示的文档并不符合您的预期要求，那么您可以进一步选择或者关闭当前面板回到面板①重新设置条件）。可选择的操作有：
    1. `添加新属性`
@@ -107,7 +109,7 @@
    4. `删除属性`
    5. `删除整个YAML`
    6. `清理控制属性`（可能需要多点几下）
-<img src="https://user-images.githubusercontent.com/39726621/161393141-459d1bb8-e466-4cb5-a650-9075a2daf96b.png" alt="image" width="500px" />
+   <img src="https://user-images.githubusercontent.com/39726621/161393141-459d1bb8-e466-4cb5-a650-9075a2daf96b.png" alt="image" width="500px" />
 
 4. 点击具体操作后进入到**面板③**，在这里输入值来进行最后一步的操作。请谨慎操作！！确认输入无误后点击确定即可提交。当您误操作数据后，请使用命令YAML属性批量管理: 还原上一步操作来还原操作。
 <img src="https://user-images.githubusercontent.com/39726621/160273284-614702eb-bc59-4dfc-937a-3f55a799c1e0.png" alt="image" width="500px" />
@@ -206,6 +208,15 @@ id:在这里填写一个在当前页面所有的yamledit代码块中独一无二
 - [ ] 设置项里增加对所有已存在的yaml表格的显示（包括文档路径、代码块参数）
 
 # 版本更新日志
+
+## 0.5.2
+
+- [x] yamledit代码块prop:部分代码格式重构，如果您使用过yamledit，请删除原本的表格以使插件正常工作！！
+- [x] yamledit表格支持设置属性栏宽度
+
+## 0.5.1
+
+- [x] 修复一点表格编辑yaml时属性命名的小错误
 
 ## 0.5.0
 

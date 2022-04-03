@@ -1,7 +1,7 @@
 import { Modal, App, TFile, Notice, MarkdownPostProcessorContext} from "obsidian";
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from "src/md";
 import { hiddenPropInTable} from "main";
-import { createInputWithChoice,add3SearchInput, add2SortInput, add3SearchPropInput, SelectedFileModal } from "src/modal"
+import { createInputWithChoice,add3SearchInput, add2SortInput, add3SearchPropInput as add4SearchPropInput, SelectedFileModal } from "src/modal"
 
 var buttonConut = true
 
@@ -120,48 +120,13 @@ export class Table {
         var showPropsList:Array<Array<string>> = new Array()
         var hasPropDisplayOption = false
         for (var line of this.source.split('\n')) {
-            // 开头为prop:的不是条件
+            // 开头为prop:的不是条件是属性
             if (line.startsWith("prop:")) {
                 hasPropDisplayOption = true
                 for (var item of line.replace('prop:', '').split(',')) {
-                    var buffer:Array<string> = item.split(":")
                     // 默认属性显示名称及类型
-                    var propItem: Array<string> = [buffer[0], buffer[0] , "text"]
-                    switch (buffer.length) {
-                        case 2: {
-                            if (buffer[1].startsWith("name.")) {     // 开头为name
-                                propItem[1] = buffer[1].replace("name.", "");
-                            }
-                            else if (buffer[1].startsWith("type.")) {    // 开头为type
-                                if (admittedType.indexOf(buffer[1].replace("type.", "")) != -1) {
-                                    propItem[2] = buffer[1].replace("type.", "");
-                                }
-                            }
-                        }break;
-                        case 3: {
-                            if (buffer[1].startsWith("name.")) {     // 1开头为name
-                                propItem[1] = buffer[1].replace("name.", "");
-                            }
-                            else if (buffer[1].startsWith("type.")) {    // 1开头为type
-                                if (admittedType.indexOf(buffer[1].replace("type.", "")) != -1) {
-                                    propItem[2] = buffer[1].replace("type.", "");
-                                }
-                            }
-
-                            if (buffer[2].startsWith("name.")) {     // 2开头为name
-                                propItem[1] = buffer[2].replace("name.", "");
-                            }
-                            else if (buffer[2].startsWith("type.")) {    // 2开头为type
-                                if (admittedType.indexOf(buffer[2].replace("type.", "")) != -1) {
-                                    propItem[2] = buffer[2].replace("type.", "");
-                                }
-                            }
-                            
-                        }break;
-                        default: break;
-                        
-                    }
-                    showPropsList.push(propItem) 
+                    // 属性格式`propName:name.显示名称:type.属性类型:width.属性宽度`
+                    showPropsList.push(item.split(":")) 
                 }
                 break
             }
@@ -179,11 +144,11 @@ export class Table {
             // 没有prop就排除隐藏的属性后显示
             for (var defaultHead of headslist) {
                 if (hiddenPropInTable.split("\n").indexOf(defaultHead) == -1) {
-                    newHeadsList.push([defaultHead, defaultHead, "text"])
+                    newHeadsList.push([defaultHead, defaultHead, "text", "200px"])
                 }
             }
         }
-        newHeadsList.unshift(["文件", "文件", "text"])
+        newHeadsList.unshift(["文件", "文件", "text", "200px"])
         return newHeadsList
     }
 
@@ -588,7 +553,7 @@ export class Table {
 
         button.setText("➕")
         button.onclick = function() {
-            var conditionArea = add3SearchPropInput(propsList)
+            var conditionArea = add4SearchPropInput(propsList)
             form.appendChild(conditionArea[3])
             inputList.push(conditionArea);
 
@@ -608,16 +573,16 @@ export class Table {
 			}
 		})
         for (var condition of oldConditions) {
-            var conditionArea = add3SearchPropInput(propsList, condition)
-            form.appendChild(conditionArea[3])
+            var conditionArea = add4SearchPropInput(propsList, condition)
+            form.appendChild(conditionArea[4])
             inputList.push(conditionArea); 
         }
         
         form.onsubmit = function(this){
             var newContent = ""
             for (var conInput of inputList) {
-                if (String(conInput[0].value) && String(conInput[1].value) && String(conInput[2].value)) {
-                    newContent = newContent + `${conInput[0].value}:name.${conInput[1].value}:type.${conInput[2].value},`
+                if (String(conInput[0].value) && String(conInput[1].value) && String(conInput[2].value) && String(conInput[3].value)) {
+                    newContent = newContent + `${conInput[0].value}:${conInput[1].value}:${conInput[2].value}:${conInput[3].value},`
                 }
             }
             if(newContent) {
@@ -692,7 +657,6 @@ export class Table {
             this.addNewTr(headslist, datalist)
         }
 
-        
     }
 
     setTh(headslist: Array<Array<string>>) {
@@ -702,8 +666,8 @@ export class Table {
             var th = document.createElement("th")
             th.setAttrs({
                     'contenteditable': 'false',
-                    // "style": `width:${1/datalist.length}%`,
                 })
+            th.setAttr("width", col[3])
             th.innerHTML = col[1]
             tr.appendChild(th)
         }
@@ -714,6 +678,7 @@ export class Table {
         var tr = this.table.createEl("tr")
         for (var i=0; i<datalist.length; i++) {
             var td = document.createElement("td")
+            td.setAttr("width", headslist[i][3])
             if (i == 0) {
                 td.innerHTML = `<a class="internal-link" data-hredf="${datalist[i]}" href="${datalist[i]}" target="_blank" rel="noopener">${datalist[i].split('/').pop().replace(".md", "")}</a>`
             }
@@ -731,7 +696,8 @@ export class Table {
         var path = datalist[0]       // 文档路径
         var lastValue = datalist[i]       // 修改前的值，用于判断当前值是否被修改
         var prop = subHeadslist[0]   // 当前属性
-        
+        var width = subHeadslist[3]
+
         // 1、处理input格式
         var input = td.createEl("input", {
             attr: {
@@ -739,7 +705,7 @@ export class Table {
                 "path": path,    // 文档路径
                 "name": lastValue,   // 修改前的值，用于判断当前值是否被修改
                 "list": prop,   // 当前属性
-                "style": "display:none"
+                "style": "display:none",
             }
         })
         td.onclick = function() {
@@ -803,7 +769,8 @@ export class Table {
                 input.value = input.getAttr("name")
                 td.createEl("img", {
                     attr: {
-                        "src" : input.getAttr("name")
+                        "src" : input.getAttr("name"),
+                        "width": ""
                     }
                 })
                 
