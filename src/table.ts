@@ -1,7 +1,7 @@
 import { Modal, App, TFile, Notice, MarkdownPostProcessorContext} from "obsidian";
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from "src/md";
 import { hiddenPropInTable} from "main";
-import { createInputWithChoice,add3SearchInput, add2SortInput, add3SearchPropInput as add4SearchPropInput, SelectedFileModal } from "src/modal"
+import { createInputWithChoice,add3SearchInput, add2SortInput, add4SearchPropInput, SelectedFileModal } from "src/modal"
 
 var buttonConut = true
 
@@ -209,7 +209,7 @@ export class Table {
      *  排序与排序之间使用`:`分隔，如`sort:文件,desc;ctime,desc`
      * @param tfiles 返回的是排序后的文档
      */
-    parseSort(tfiles: Array<TFile>): Array<TFile> {
+    parseSort(tfiles: Array<TFile>, headslist:  Array<Array<string>>): Array<TFile> {
 
         var sortList: Array<Array<string>> = new Array()
 
@@ -222,6 +222,13 @@ export class Table {
                         sortList.push(item.split(':'))
                     }
                 }
+            }
+        }
+        // 筛选类型为checkbox的属性名称
+        var chcekboxHeads: Array<string> = new Array()
+        for (var head of headslist) {
+            if (head[2]=="checkbox") {
+                chcekboxHeads.push(head[0])
             }
         }
         
@@ -239,13 +246,33 @@ export class Table {
                 }
             }
             else {
-                if (sort[1].toLowerCase() == "desc") {
-                    // 降序
-                    tfiles.sort((a, b)=> String(new MDIO(this.app, b.path).getPropertyValue(sort[0])).localeCompare(String(new MDIO(this.app, a.path).getPropertyValue(sort[0])), 'zh')); //z~a 排序
+                if (chcekboxHeads.indexOf(sort[0]) != -1) {
+                    function boolStrToNumber (str: string): number {
+                        if (str == 'true') {
+                            return 1
+                        }
+                        else {
+                            return 0
+                        }
+                    }
+                    if (sort[1].toLowerCase() == "desc") {
+                        // 降序
+                        tfiles.sort((a, b)=> boolStrToNumber(String(new MDIO(this.app, b.path).getPropertyValue(sort[0]))) - boolStrToNumber(String(new MDIO(this.app, a.path).getPropertyValue(sort[0])))); //true~false 排序
+                    }
+                    else { 
+                        // 升序
+                        tfiles.sort((a, b)=> boolStrToNumber(String(new MDIO(this.app, a.path).getPropertyValue(sort[0]))) - boolStrToNumber(String(new MDIO(this.app, b.path).getPropertyValue(sort[0])))); //false~true 排序
+                    }
                 }
                 else {
-                    // 升序
-                    tfiles.sort((a, b)=> String(new MDIO(this.app, a.path).getPropertyValue(sort[0])).localeCompare(String(new MDIO(this.app, b.path).getPropertyValue(sort[0])), 'zh')); //a~z 排序
+                    if (sort[1].toLowerCase() == "desc") {
+                        // 降序
+                        tfiles.sort((a, b)=> String(new MDIO(this.app, b.path).getPropertyValue(sort[0])).localeCompare(String(new MDIO(this.app, a.path).getPropertyValue(sort[0])), 'zh')); //z~a 排序
+                    }
+                    else {
+                        // 升序
+                        tfiles.sort((a, b)=> String(new MDIO(this.app, a.path).getPropertyValue(sort[0])).localeCompare(String(new MDIO(this.app, b.path).getPropertyValue(sort[0])), 'zh')); //a~z 排序
+                    }
                 }
             }
         }
@@ -554,7 +581,7 @@ export class Table {
         button.setText("➕")
         button.onclick = function() {
             var conditionArea = add4SearchPropInput(propsList)
-            form.appendChild(conditionArea[3])
+            form.appendChild(conditionArea[4])
             inputList.push(conditionArea);
 
         }
@@ -635,13 +662,13 @@ export class Table {
             "style": "table-layout:fixed;",
         })
 
-        // 2、解析排序
-        tfiles = this.parseSort(tfiles)
-        
-        // 3、解析要显示的属性，设置题头，按顺序依次为：文件（行首会自动添加这个）、属性1、属性2、……
+        // 2、解析要显示的属性，设置题头，按顺序依次为：文件（行首会自动添加这个）、属性1、属性2、……
         var headslist = this.parseProp(tfiles)
         this.setTh(headslist)
 
+        // 3、解析排序
+        tfiles = this.parseSort(tfiles, headslist)
+        
         // 4、为表格一行一行的添加数据
         for (var file of tfiles) {
             var datalist = new Array()

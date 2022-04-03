@@ -493,88 +493,90 @@ export class Search{
      */
     getSelectedTFiles(conditions: Array<Array<string>>):Array<TFile> {
         var tFiles = new Array()
-        for (var file of this.app.vault.getMarkdownFiles()) {
-            // 如果不是忽略文件夹下的文件就可以继续
-            if (!this.isBannedFolder(file.path)) {
-                var md = new MDIO(this.app, file.path)
-
-                var fileSelected = true;
-
-                // 条件判断
-                for (var condition of conditions) {
-                    // 1、yaml
-                    if (condition[0] == "yaml") {
-                        if (condition[1] == "包含") {
-                            if (!md.hasProperty(condition[2])) {
+        if (conditions.length) {
+            for (var file of this.app.vault.getMarkdownFiles()) {
+                // 如果不是忽略文件夹下的文件就可以继续
+                if (!this.isBannedFolder(file.path)) {
+                    var md = new MDIO(this.app, file.path)
+    
+                    var fileSelected = true;
+    
+                    // 条件判断
+                    for (var condition of conditions) {
+                        // 1、yaml
+                        if (condition[0] == "yaml") {
+                            if (condition[1] == "包含") {
+                                if (!md.hasProperty(condition[2])) {
+                                    fileSelected = false
+                                    break
+                                }
+                            }
+                            else if(condition[1] == "不包含") {
+                                if (md.hasProperty(condition[2])) {
+                                    fileSelected = false
+                                    break
+                                }
+                            }
+                        }
+                        else if (condition[0] == "yaml属性") {
+                            if (!md.hasProperty(condition[1])) {
+                                fileSelected = false
+                                break
+                            }
+                            else if(String(md.getPropertyValue(condition[1])) != String(condition[2])) {
                                 fileSelected = false
                                 break
                             }
                         }
-                        else if(condition[1] == "不包含") {
-                            if (md.hasProperty(condition[2])) {
-                                fileSelected = false
-                                break
+                        else if (condition[0] == "标签") {
+                            if (condition[1] == "包含") {
+                                if (!md.hasTag(condition[2])) {
+                                    fileSelected = false
+                                    break
+                                }
+                            }
+                            else if(condition[1] == "不包含") {
+                                if (md.hasTag(condition[2])) {
+                                    fileSelected = false
+                                    break
+                                }
+                            }
+                        }
+                        else if (condition[0] == "文件名称") {
+                            var reg = new RegExp(condition[2]);
+                            if (condition[1] == "符合") {
+                                if (!file.basename.match(reg)) {
+                                    fileSelected = false
+                                    break
+                                }
+                            }
+                            else if(condition[1] == "不符合") {
+                                if (file.basename.match(reg)) {
+                                    fileSelected = false
+                                    break
+                                }
+                            }
+                        }
+                        else if (condition[0] == "文件路径") {
+                            var reg = new RegExp(condition[2]);
+                            if (condition[1] == "符合") {
+                                if (!file.path.match(reg)) {
+                                    fileSelected = false
+                                    break
+                                }
+                            }
+                            else if(condition[1] == "不符合") {
+                                if (file.path.match(reg)) {
+                                    fileSelected = false
+                                    break
+                                }
                             }
                         }
                     }
-                    else if (condition[0] == "yaml属性") {
-                        if (!md.hasProperty(condition[1])) {
-                            fileSelected = false
-                            break
-                        }
-                        else if(String(md.getPropertyValue(condition[1])) != String(condition[2])) {
-                            fileSelected = false
-                            break
-                        }
+                    // 最终符合要求的存入数组
+                    if (fileSelected) {
+                        tFiles.push(file)
                     }
-                    else if (condition[0] == "标签") {
-                        if (condition[1] == "包含") {
-                            if (!md.hasTag(condition[2])) {
-                                fileSelected = false
-                                break
-                            }
-                        }
-                        else if(condition[1] == "不包含") {
-                            if (md.hasTag(condition[2])) {
-                                fileSelected = false
-                                break
-                            }
-                        }
-                    }
-                    else if (condition[0] == "文件名称") {
-                        var reg = new RegExp(condition[2]);
-                        if (condition[1] == "符合") {
-                            if (!file.basename.match(reg)) {
-                                fileSelected = false
-                                break
-                            }
-                        }
-                        else if(condition[1] == "不符合") {
-                            if (file.basename.match(reg)) {
-                                fileSelected = false
-                                break
-                            }
-                        }
-                    }
-                    else if (condition[0] == "文件路径") {
-                        var reg = new RegExp(condition[2]);
-                        if (condition[1] == "符合") {
-                            if (!file.path.match(reg)) {
-                                fileSelected = false
-                                break
-                            }
-                        }
-                        else if(condition[1] == "不符合") {
-                            if (file.path.match(reg)) {
-                                fileSelected = false
-                                break
-                            }
-                        }
-                    }
-                }
-                // 最终符合要求的存入数组
-                if (fileSelected) {
-                    tFiles.push(file)
                 }
             }
         }

@@ -84,8 +84,9 @@ button.kanbanMOC:hover {
 	  }
 .block-language-yamledit table  tr td:not(first-child) input{
 	word-break: break-all;
-	/* width: 7em;
-	min-width: 7em; */
+	width: 100%;
+	/* width: 7em; */
+	/* min-width: 7em; */
 	text-align: center;
 }
 

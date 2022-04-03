@@ -817,41 +817,11 @@ export class SelectedFileModal extends Modal{
 
 
 /**
- * 创建3个输入搜索框（也可能是2个搜索输入框+1个文字输入框）
+ * 表格筛选条件输入框
  */
  export function add3SearchInput(app:App, defaultValue: Array<string> = []) {
-    var conDiv = document.createElement("div")
-    var deleteButton = conDiv.createEl("button",{
-        attr: {
-            "data-toggle": "tooltip",
-            "title":"删除该筛选条件"
-        }
-    })
-    deleteButton.innerHTML = "➖"
-    /**
-     * 搜索输入选框
-     */
-    if (defaultValue.length == 3) {
-        var input1 = createSelectWithChoice(defaultValue[0],["yaml", "yaml属性", "标签", "文件名称", "文件路径"])
-        var input2 = createSelectWithChoice(defaultValue[1],[])
-        var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,defaultValue[2],[])
-    }
-    else {
-        var input1 = createSelectWithChoice("",["yaml", "yaml属性", "标签", "文件名称", "文件路径"])
-        var input2 = createSelectWithChoice("",[])
-        var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,"",[])
-    }
-    conDiv.appendChild(input1)
-    conDiv.appendChild(input2)
-    conDiv.appendChild(input3)
-    conDiv.appendChild(searchResult3)
-
-    deleteButton.onclick = function() {
-        input1.value = ""
-        input2.value = ""
-        input3.value = ""
-        conDiv.remove()
-    }
+    var search = new Search(app)
+    
     function solveOptions() {
         switch(input1.value) {
             case "yaml":{
@@ -863,7 +833,6 @@ export class SelectedFileModal extends Modal{
                     input2.appendChild(item);
                 }
                 // 处理input3
-                var search = new Search(app);
                 for(var choice of search.getAllYamlPropertiesName()){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
@@ -872,7 +841,6 @@ export class SelectedFileModal extends Modal{
             }; break;
             case "yaml属性":{
                 // 处理input2
-                var search = new Search(app);
                 for(var choice of search.getAllYamlPropertiesName()){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
@@ -906,7 +874,6 @@ export class SelectedFileModal extends Modal{
                     input2.appendChild(item);
                 }
                 // 处理input3
-                var search = new Search(app);
                 for(var choice of search.getAllTagsName()){
                     var item = document.createElement('option');
                     item.innerHTML = choice;
@@ -925,7 +892,61 @@ export class SelectedFileModal extends Modal{
         }
     }
 
-    solveOptions()
+    var conDiv = document.createElement("div")
+    var deleteButton = conDiv.createEl("button",{
+        attr: {
+            "data-toggle": "tooltip",
+            "title":"删除该筛选条件"
+        }
+    })
+    deleteButton.innerHTML = "➖"
+    /**
+     * 搜索输入选框
+     */
+    if (defaultValue.length == 3) {
+        var input1 = createSelectWithChoice(defaultValue[0],["yaml", "yaml属性", "标签", "文件名称", "文件路径"])
+        switch(input1.value) {
+            case "yaml": {
+                var input2 = createSelectWithChoice(defaultValue[1],["包含", "不包含"]);
+                var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,defaultValue[2],search.getAllYamlPropertiesName())
+            } break;
+            case "yaml属性": {
+                var input2 = createSelectWithChoice(defaultValue[1], search.getAllYamlPropertiesName());
+                var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,defaultValue[2],search.getAllValuesOfAProperty(defaultValue[1]))
+            } break;
+            case "标签": {
+                var input2 = createSelectWithChoice(defaultValue[1],["包含", "不包含"]);
+                var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,defaultValue[2],search.getAllTagsName())
+            } break;
+            case "文件名称": {
+                var input2 = createSelectWithChoice(defaultValue[1],["符合", "不符合"]);
+                var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,defaultValue[2],[])
+            } break;
+            case "文件路径": {
+                var input2 = createSelectWithChoice(defaultValue[1],["符合", "不符合"]);
+                var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,defaultValue[2],[])
+            } break;
+            default: break;
+        }
+    }
+    else {
+        var input1 = createSelectWithChoice("",["yaml", "yaml属性", "标签", "文件名称", "文件路径"])
+        var input2 = createSelectWithChoice("",[])
+        var [input3,searchResult3] = createInputWithChoice(conditionNameCount++,"",[])
+        solveOptions()
+    }
+    conDiv.appendChild(input1)
+    conDiv.appendChild(input2)
+    conDiv.appendChild(input3)
+    conDiv.appendChild(searchResult3)
+
+    deleteButton.onclick = function() {
+        input1.value = ""
+        input2.value = ""
+        input3.value = ""
+        conDiv.remove()
+    }
+
     /**
      * input1 oninput
      */
@@ -944,9 +965,9 @@ export class SelectedFileModal extends Modal{
     return [input1, input2, input3, conDiv]
 }
 /**
- * 创建3个用于属性输入搜索框（也可能是2个搜索输入框+1个文字输入框）
+ * 表格属性输入框
  */
- export function add3SearchPropInput(headslist: Array<string>, defaultValue: Array<string> = []) {
+ export function add4SearchPropInput(headslist: Array<string>, defaultValue: Array<string> = []) {
     var conDiv = document.createElement("div")
     var deleteButton = conDiv.createEl("button", {
         attr: {
@@ -994,7 +1015,7 @@ export class SelectedFileModal extends Modal{
     return [input1, input2, input3, input4, conDiv]
 }
 /**
- * 创建2个输入搜索框（也可能是2个搜索输入框+1个文字输入框）
+ * 表格排序输入框
  */
 export function add2SortInput(headslist: Array<string>, defaultValue: Array<string> = []) {
     var conDiv = document.createElement("div")
@@ -1027,6 +1048,8 @@ export function add2SortInput(headslist: Array<string>, defaultValue: Array<stri
     return [input1, input2, conDiv]
 }
 
+
+// 基础函数
 export function createSelectWithChoice(defaultValue:string, datalist: Array<string>) {
     var select = document.createElement("select")
     select.setAttrs({
