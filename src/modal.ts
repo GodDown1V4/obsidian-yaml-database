@@ -964,7 +964,7 @@ export class SelectedFileModal extends Modal{
     }
     else {
         var input1 = createSelectWithChoice("",headslist)
-        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,"",[])
+        var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,input1.value,[])
         var input3 = createSelectWithChoice("text",admittedType)
     }
     conDiv.appendChild(input1)
@@ -981,7 +981,6 @@ export class SelectedFileModal extends Modal{
     /**
      * input1 oninput
      */
-    input2.value = input1.value
     input1.oninput = function() {
         input2.value = input1.value
     }
