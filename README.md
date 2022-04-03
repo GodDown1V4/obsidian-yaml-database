@@ -50,6 +50,8 @@
 
 插件的Github链接：https://github.com/1657744680/obsidian-yaml-bulk-edit
 
+插件视频演示：https://www.bilibili.com/video/BV1wr4y1p7qz/
+
 这个插件是即可以批量编辑obsidian中文档的yaml，也可以像notion那样表格编辑的形式来编辑某个文档的某个yaml。
 
 - 批量编辑YAML： 
