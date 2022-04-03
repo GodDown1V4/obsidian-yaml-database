@@ -156,6 +156,7 @@ export class MDIO{
         if (this.hasYaml()) {
             // 检测当前文档是否不存在该属性，不存在则添加
             if (!this.hasProperty(newProperty)) {
+                oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "add", newProperty]))
                 this.app.vault.read(this.getTFile()).then(oldContent => {
                     var oldContentList = oldContent.split("\n");
     
@@ -168,20 +169,19 @@ export class MDIO{
     
                     // 写入
                     this.write(newContent)
-                    oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "add", newProperty]))
                 });
             }
         }
         else {
             // 检测当前文档是否不存在该属性，不存在则添加
             if (!this.hasProperty(newProperty)) {
+                oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "add", newProperty]))
                 this.app.vault.read(this.getTFile()).then(oldContent => {
                     // 添加新属性
                     var newContent = `---\n${newProperty}: '${value.replace(/'/g, '"')}'\n---\n` + oldContent;
     
                     // 写入
                     this.write(newContent)
-                    oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "add", newProperty]))
                 });
             }
         }
@@ -215,6 +215,7 @@ export class MDIO{
         if (this.hasYaml()) {
             // 是否存在该属性？
             if (this.hasProperty(Property)) {
+                oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "updateValue", Property, this.getPropertyValue(Property)]))
                 this.app.vault.read(this.getTFile()).then(oldContent => {
                     // 找到Property的行号
                     var oldContentList = oldContent.split("\n");
@@ -232,8 +233,6 @@ export class MDIO{
                             break;
                         }
                     }
-                    // 获取旧值以提供撤销依据
-                    var oldValue = this.getPropertyValue(Property)
     
                     // 修改属性值
                     oldContentList.splice(startLine-1, endLine-startLine, `${Property}: '${newValue.replace(/'/g, '"')}'`)
@@ -244,9 +243,6 @@ export class MDIO{
     
                     // 写入
                     this.write(newContent)
-                    allYamlChangeHistory.length = 0
-                    oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "updateValue", Property, oldValue]))
-                    allYamlChangeHistory.push(oneOperationYamlChangeHistory)
                 });
             }
         }
@@ -258,6 +254,7 @@ export class MDIO{
             if (this.hasProperty(Property)) {
                 // 检测是否为禁止操作项？
                 if (bannedProp.split("\n").indexOf(Property)==-1) {   // 不是禁止操作项
+                    oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "updateValue", Property, this.getPropertyValue(Property)]))
                     this.app.vault.read(this.getTFile()).then(oldContent => {
                         // 找到Property的行号
                         var oldContentList = oldContent.split("\n");
@@ -275,8 +272,6 @@ export class MDIO{
                                 break;
                             }
                         }
-                        // 获取旧值以提供撤销依据
-                        var oldValue = this.getPropertyValue(Property)
         
                         // 修改属性值
                         oldContentList.splice(startLine-1, endLine-startLine, `${Property}: '${newValue.replace(/'/g, '"')}'`)
@@ -287,7 +282,6 @@ export class MDIO{
         
                         // 写入
                         this.write(newContent)
-                        oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "updateValue", Property, oldValue]))
                     });
                 }
             }
@@ -300,6 +294,7 @@ export class MDIO{
             if (this.hasProperty(delProperty)) {
                 // 检测是否为禁止操作项？
                 if (bannedProp.split("\n").indexOf(delProperty)==-1) {   // 不是禁止操作项
+                    oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "updateValue", delProperty, this.getPropertyValue(delProperty)]))
                     this.app.vault.read(this.getTFile()).then(oldContent => {
                         // 找到delProperty的行号
                         var oldContentList = oldContent.split("\n");
@@ -317,8 +312,6 @@ export class MDIO{
                                 break;
                             }
                         }
-                        // 获取旧值以提供撤销依据
-                        var oldValue = this.getPropertyValue(delProperty)
         
                         // 删除该属性
                         oldContentList.splice(startLine-1, endLine-startLine);
@@ -329,7 +322,6 @@ export class MDIO{
         
                         // 写入
                         this.write(newContent)
-                        oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, [this.path, "del", delProperty, oldValue]))
                     });
                 }
             }

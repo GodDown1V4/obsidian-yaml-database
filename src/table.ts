@@ -1,5 +1,5 @@
 import { Modal, App, TFile, Notice, MarkdownPostProcessorContext} from "obsidian";
-import { MDIO, Search } from "src/md";
+import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from "src/md";
 import { hiddenPropInTable} from "main";
 import { createInputWithChoice,add3SearchInput, add2SortInput, add3SearchPropInput, SelectedFileModal } from "src/modal"
 
@@ -765,6 +765,7 @@ export class Table {
                 default: var newValue:string = this.value; break;
             }
             if (String(this.getAttr("name"))!=newValue){
+                oneOperationYamlChangeHistory.length = 0
                 this.setAttr("name", newValue)   
                 // 有该属性则修改值
                 if (md.hasProperty(this.getAttr("list"))) {
@@ -774,6 +775,7 @@ export class Table {
                 else {
                     md.addProperty(this.getAttr("list"), newValue)
                 }
+                allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
             }
             input.setAttr("style", "display:none")
             superThis.solveInput(td, input)
@@ -836,6 +838,7 @@ export class Table {
                 var superThis = this
                 var app = this.app
                 td.onblur = function () {
+                    oneOperationYamlChangeHistory.length = 0
                     var newValue = td.innerHTML.replace(/<input.*/g, "")
                     var md = new MDIO(app, input.getAttr("path"))
                     if (String(input.getAttr("name"))!=newValue){
@@ -849,6 +852,7 @@ export class Table {
                             md.addProperty(input.getAttr("list"), newValue)
                         }
                     }
+                    allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
                     input.setAttr("style", "display:none")
                     superThis.solveInput(td, input)
                 }

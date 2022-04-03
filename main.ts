@@ -41,12 +41,15 @@ export default class MyPlugin extends Plugin {
 			id: 'yaml-bulk-edit-cancel',
 			name: '还原上一步操作',
 			callback: () => {
-				for (var item of allYamlChangeHistory.pop()) {
-					item.restore()
-				}
-				// 清理以使其只保持50条操作记录
-				while (allYamlChangeHistory.length>50) {
-					allYamlChangeHistory.shift()
+				console.log(allYamlChangeHistory)
+				if (allYamlChangeHistory.length>0){
+					for (var item of allYamlChangeHistory.pop()) {
+						item.restore()
+					}
+					// 清理以使其只保持50条操作记录
+					while (allYamlChangeHistory.length>50) {
+						allYamlChangeHistory.shift()
+					}
 				}
 				// new MainModal(this.app).open();
 			}

@@ -338,7 +338,7 @@ export class SelectedFileModal extends Modal{
         var tfiles = this.tfiles
         // 处理提交
         form.onsubmit = function() {
-            allYamlChangeHistory.length = 0
+            oneOperationYamlChangeHistory.length = 0
             for (var file of tfiles) {
                 var md = new MDIO(app, file.path)
                 md.addProperty(input1.value, input2.value);
@@ -346,7 +346,7 @@ export class SelectedFileModal extends Modal{
                     button.click();
                 }, 100)
             }
-            allYamlChangeHistory.push(oneOperationYamlChangeHistory)
+            allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
             new Notice(`“${input1.value}”处理完成`)
         }
 
@@ -440,7 +440,7 @@ export class SelectedFileModal extends Modal{
         // 处理提交
         form.onsubmit = function() {
             if (bannedProp.split("\n").indexOf(input1.value)==-1) {
-                allYamlChangeHistory.length = 0
+                oneOperationYamlChangeHistory.length = 0
                 for (var file of tfiles) {
                     var md = new MDIO(app, file.path)
                     md.delProperty(input1.value);
@@ -448,7 +448,7 @@ export class SelectedFileModal extends Modal{
                         button.click();
                     }, 100)
                 }
-                allYamlChangeHistory.push(oneOperationYamlChangeHistory)
+                allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
                 new Notice(`“${input1.value}”处理完成`)
             }
             else {
@@ -556,7 +556,7 @@ export class SelectedFileModal extends Modal{
         form.onsubmit = function() {
             if (bannedProp.split("\n").indexOf(input1.value)==-1) {
                 if (input2.value) {
-                    allYamlChangeHistory.length = 0
+                    oneOperationYamlChangeHistory.length = 0
                     for (var file of tfiles) {
                         var md = new MDIO(app, file.path)
                         md.updatePropertyName(input1.value, input2.value);
@@ -564,7 +564,7 @@ export class SelectedFileModal extends Modal{
                             button.click();
                         }, 100)
                     }
-                    allYamlChangeHistory.push(oneOperationYamlChangeHistory)
+                    allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
                     new Notice(`“${input1.value}”处理完成`)
                 }
                 else {
@@ -674,7 +674,7 @@ export class SelectedFileModal extends Modal{
         // 处理提交
         form.onsubmit = function() {
             if (bannedProp.split("\n").indexOf(input1.value)==-1) {
-                allYamlChangeHistory.length = 0
+                oneOperationYamlChangeHistory.length = 0
                 for (var file of tfiles) {
                     var md = new MDIO(app, file.path)
                     md.updatePropertyValue(input1.value, input2.value);
@@ -682,7 +682,7 @@ export class SelectedFileModal extends Modal{
                         button.click();
                     }, 100)
                 }
-                allYamlChangeHistory.push(oneOperationYamlChangeHistory)
+                allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
                 new Notice(`“${input1.value}”处理完成`)
             }
             else {
@@ -738,7 +738,7 @@ export class SelectedFileModal extends Modal{
         button2.setText("确认删除(❗危险操作☠️)")
         // 处理提交
         button2.onclick = function() {
-            allYamlChangeHistory.length = 0
+            oneOperationYamlChangeHistory.length = 0
             for (var file of tfiles) {
                 var md = new MDIO(app, file.path)
                 md.delTheWholeYaml();
@@ -746,7 +746,7 @@ export class SelectedFileModal extends Modal{
                     button.click();
                 }, 100)
             }
-            allYamlChangeHistory.push(oneOperationYamlChangeHistory)
+            allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
         }
 
     }
@@ -796,12 +796,12 @@ export class SelectedFileModal extends Modal{
         button2.setText("确认删除(❗危险操作☠️)")
         // 处理提交
         button2.onclick = function() {
-            allYamlChangeHistory.length = 0
+            oneOperationYamlChangeHistory.length = 0
             for (var file of tfiles) {
                 var md = new MDIO(app, file.path)
                 md.clearEmptyProps();
             }
-            allYamlChangeHistory.push(oneOperationYamlChangeHistory)
+            allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
             setTimeout(() =>{
                 button.click();
             }, 100)
