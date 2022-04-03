@@ -1,4 +1,6 @@
-！！**若您在0.5.1及0.5.1之前使用过该插件的yamledit代码块，则需要删除yamledit代码块中开头为`prop:`的一行，若您出现无法打开表格所在文档的情况，请使用其它应用打开文档删除yamledit代码块中开头为`prop:`的一行。**
+版本升级注意事项！！
+- [0.5.1及0.5.1之前升级注意事项！！](https://github.com/1657744680/obsidian-yaml-bulk-edit/issues/10)
+- [0.1.0及0.1.0之前的版本升级注意事项！！](https://github.com/1657744680/obsidian-yaml-bulk-edit/issues/11)
 
 > **此插件涉及到批量修改文档内容，所以使用前请进行数据备份！！使用此插件导致的任何数据丢失本人概不负责。**
 >
@@ -51,6 +53,8 @@
 > 我不太会CSS，表格样式的代码是QQ群的`Cuman`老哥按我的要求帮忙提供的，感谢！！
 
 插件的Github链接：https://github.com/1657744680/obsidian-yaml-bulk-edit
+
+插件视频演示：https://www.bilibili.com/video/BV1wr4y1p7qz/
 
 这个插件是即可以批量编辑obsidian中文档的yaml，也可以像notion那样表格编辑的形式来编辑某个文档的某个yaml。
 
