@@ -1,6 +1,5 @@
 版本升级注意事项！！
-- [0.5.1及0.5.1之前升级注意事项！！](https://github.com/1657744680/obsidian-yaml-bulk-edit/issues/10)
-- [0.1.0及0.1.0之前的版本升级注意事项！！](https://github.com/1657744680/obsidian-yaml-bulk-edit/issues/11)
+- [升级注意事项！！](https://github.com/1657744680/obsidian-yaml-bulk-edit/issues/12)
 
 > **此插件涉及到批量修改文档内容，所以使用前请进行数据备份！！使用此插件导致的任何数据丢失本人概不负责。**
 >
