@@ -364,7 +364,6 @@ export class MDIO{
             for (var propertyName of this.getPropertiesName()) {
                 if(!this.getPropertyValue(propertyName)) {
                     // 空值属性
-                    // console.log(propertyName)
                     this.delProperty(propertyName)  // 删除函数会检测是否为重要属性
                 }
             }
@@ -391,14 +390,6 @@ export class MDIO{
         if (this.getTagsName().indexOf(TagName) != -1) {
             return true
         }
-        // var cache = this.app.metadataCache.getCache(this.path);
-        // if (cache.hasOwnProperty("tags")) {
-        //     for (var item of cache["tags"]) {
-        //         if (item.tag == `#${TagName}`) {
-        //             return true
-        //         }
-        //     }
-        // }
         return false
     }
 
@@ -611,5 +602,28 @@ export class Search{
             }
         }
         return false
+    }
+
+    /**
+     * 获取所有的文件
+     */
+    getAllFilesPathList():Array<string> {
+        var filesList = new Array()
+        for (var file of this.app.vault.getMarkdownFiles()) {
+            filesList.push(file.path)
+        }
+        return filesList
+    }
+    /**
+     * 获取所有的文件夹路径
+     */
+    getAllFoldersPathList():Array<string> {
+        var foldersList = new Array()
+        for (var file of this.app.vault.getAllLoadedFiles()) {
+            if (!file.hasOwnProperty("extension")) {
+                foldersList.push(file.path)
+            }
+        }
+        return foldersList
     }
 }

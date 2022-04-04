@@ -21,7 +21,7 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 // 插件主功能设置！！
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
-	// 异步：加载插件
+	// 异步：加载 插件
 	async onload() {
 
 		await this.loadSettings();

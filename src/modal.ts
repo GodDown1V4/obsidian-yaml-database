@@ -1017,7 +1017,7 @@ export class SelectedFileModal extends Modal{
 /**
  * 表格排序输入框
  */
-export function add2SortInput(headslist: Array<string>, defaultValue: Array<string> = []) {
+export function add2SortSelect(headslist: Array<string>, defaultValue: Array<string> = []) {
     var conDiv = document.createElement("div")
     var deleteButton = conDiv.createEl("button", {
         attr: {
@@ -1047,7 +1047,29 @@ export function add2SortInput(headslist: Array<string>, defaultValue: Array<stri
     }
     return [input1, input2, conDiv]
 }
+/**
+ * 表格newSettings输入框
+ */
+export function add2newSettingsInput(foldersList: Array<string>, filesList: Array<string>, defaultValue: Array<string>) {
+    var conDiv = document.createElement("div")
+    
+    var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,defaultValue[0],foldersList, "请输入新建文件夹路径")
+    var [input2,searchResult2] = createInputWithChoice(conditionNameCount++,defaultValue[1],filesList, "请输入模板文件路径")
+    conDiv.appendChild(input1)
+    conDiv.appendChild(searchResult1)
+    conDiv.appendChild(input2)
+    conDiv.appendChild(searchResult2)
 
+    return [input1, input2, conDiv]
+}
+/**
+ * 表格newItem输入框
+ */
+export function addnewItemInput() {
+    var [input1,searchResult1] = createInputWithChoice(conditionNameCount++,"",[], "请输入标题")
+
+    return input1
+}
 
 // 基础函数
 export function createSelectWithChoice(defaultValue:string, datalist: Array<string>) {
@@ -1071,13 +1093,14 @@ export function createSelectWithChoice(defaultValue:string, datalist: Array<stri
     return select
 }
 
-export function createInputWithChoice(uniqueId:number, defaultValue:string, datalist: Array<string>) {
+export function createInputWithChoice(uniqueId:number, defaultValue:string, datalist: Array<string>, placeholder: string = "") {
     var input = document.createElement("input")
     input.setAttrs({
         'type': 'text',
         "list": String(uniqueId) + "condition-yaml"
     })
     input.value = defaultValue
+    input.placeholder = placeholder
 
     var searchResult = document.createElement("datalist")
     searchResult.setAttr("id", String(uniqueId) + "condition-yaml")
