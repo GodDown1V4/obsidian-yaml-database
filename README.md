@@ -47,8 +47,6 @@
 >
 > 若您想要使用本插件，强烈推荐您阅读本插件的[筛选条件说明](#筛选条件说明)，阅读这个有利于您采取合理的措施以使得该插件和文件配合。
 
-> **若您在0.1.1之前使用过当前插件，则需要按照说明对设置项进行修改。**
-
 > 我不太会CSS，表格样式的代码是QQ群的`Cuman`老哥按我的要求帮忙提供的，感谢！！
 
 插件的Github链接：https://github.com/1657744680/obsidian-yaml-bulk-edit
@@ -143,6 +141,8 @@ id:在这里填写一个在当前页面所有的yamledit代码块中独一无二
 
 ### 操作区域
 
+<img src="https://user-images.githubusercontent.com/39726621/161559118-dacfb970-1a59-4716-971e-58d4c4f18dfc.png" alt="image" width="500px" />
+
 操作区域是指表格的按钮、搜索部分，包括以下内容：
 
 - `刷新`（点击重新读取缓存渲染表格）
@@ -177,12 +177,12 @@ id:在这里填写一个在当前页面所有的yamledit代码块中独一无二
     - 新建文档的内容：
       - 若您指定模板，那么**插件会对模板进行校验并根据筛选条件更改模板YAML**，请注意这一点。
       - 若您未指定文件模板，那么**插件会根据筛选条件对新增的文件进行更改YAML**以使新建的文档能够被当前表格索引。
+      - <img src="https://user-images.githubusercontent.com/39726621/161558590-a0f197f3-570e-4337-8e1c-6cb857cc0b8d.png" alt="image" width="500px" />
   - 左键点击：输入文档标题添加文档
     - 输入文档名称，成功新建之后表格会刷新。（若未刷新请手动刷新）
+    - <img src="https://user-images.githubusercontent.com/39726621/161559398-32748bac-27b9-4a30-8888-00aa819dbeb7.png" alt="image" width="500px" />
 
-  
 
-  <img src="https://user-images.githubusercontent.com/39726621/161393268-548d5d42-4cd3-42c1-bde6-0df863dacce7.png" alt="image" width="500px" />
 ---
 
 其它的注意事项：
