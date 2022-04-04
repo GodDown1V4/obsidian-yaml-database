@@ -876,6 +876,21 @@ export class Table {
             }, 100)
         }
 
+        function insertTr(path: string): HTMLTableRowElement{
+            var headslist = superThis.getHeadsByProp(superThis.getTfilesByConditions())
+            var datalist = new Array()
+            for (var i = 0; i < headslist.length; i++) {
+                if (i == 0) {
+                    datalist.push(path)
+                }
+                else {
+                    var md = new MDIO(superThis.app, path)
+                    datalist.push(md.getPropertyValue(headslist[i][0]))
+                }
+            }
+            return superThis.createNewTr(headslist, datalist)
+        }
+
         form.onsubmit = function (this) {
             var config = superThis.getNewConfig()
             if (superThis.renameCheck(input.value, config[0])) {
@@ -899,7 +914,7 @@ export class Table {
                 }
                 newSettingsDiv.remove()  // 删除面板
                 setTimeout(() => {
-                    superThis.refreshButton.click()
+                    insertTr(`${config[0]}${input.value}.md`).insertAfter(superThis.table.children[0])
                 }, 1000)
                 mainbutton.disabled = false
             }
@@ -994,12 +1009,14 @@ export class Table {
                 a.innerHTML = datalist[i].split('/').pop().replace(".md", "")
                 td.appendChild(a)
                 td.setAttrs({
-                    "contenteditable": "true",
                     "path": datalist[i]
                 })
                 var superThis = this
 
-                td.onfocus = function (this) {
+                td.ondblclick = function (this) {
+                    this.setAttrs({
+                        "contenteditable": "true",
+                    })
                     this.innerHTML = this.getAttr("path").split('/').pop().replace(".md", "")
                 }
                 td.oninput = function (this) {
@@ -1011,6 +1028,9 @@ export class Table {
                     }
                 }
                 td.onblur = function (this) {
+                    this.setAttrs({
+                        "contenteditable": "false",
+                    })
                     var oldPath = this.getAttr("path")
                     var oldName = this.getAttr("path").split('/').pop().replace(".md", "")
                     var newValue = this.innerHTML
