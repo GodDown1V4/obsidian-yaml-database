@@ -45,6 +45,7 @@
 
 插件的Github链接：[1657744680/obsidian-yaml-database: 像notion database一样浏览编辑文档的YAML属性 (github.com)](https://github.com/1657744680/obsidian-yaml-database)
 
+演示视频：[obsidian-yaml-database：帮助您管理一个文件夹中的子文档YAML属性](https://www.bilibili.com/video/BV1M94y1d79D/)
 
 图片预览：
 
