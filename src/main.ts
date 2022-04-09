@@ -54,7 +54,7 @@ export default class AgtablePlugin extends Plugin {
           }
         }
         else {
-          el.createDiv().innerHTML = "请按照下列形式为代码块添加id: <br><blockquote>```yamledit<br>{<br>  'id':'在这里填写一个在当前页面所有的yamledit代码块中独一无二id值'<br>}<br>```</blockquote>"
+          el.createDiv().innerHTML = '请按照下列形式为代码块添加id (一定要使用双引号！！): <br><blockquote>```yamledit<br>{<br>  "id":"在这里填写一个在当前页面所有的yamledit代码块中独一无二id值"<br>}<br>```</blockquote>'
         }
       }
     )
