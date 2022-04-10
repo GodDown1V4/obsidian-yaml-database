@@ -154,7 +154,7 @@ export default class DataGrid extends React.Component<Props, State> {
 
     this.clickedRowIndex = params.rowIndex
 
-    const thisRow = this.api.getRowNode(params.rowIndex)
+    const path = params.data["yamleditFirstFileColumn"]
 
     const menu = new Menu(this.app)
 
@@ -165,13 +165,13 @@ export default class DataGrid extends React.Component<Props, State> {
         .onClick(async () => {
           if (this.app.vault["config"].hasOwnProperty("trashOption")) {
             switch (this.app.vault["config"]["trashOption"]) {
-              case "system": await this.app.vault.trash(this.app.vault.getAbstractFileByPath(thisRow.data["yamleditFirstFileColumn"]), true); break;
-              case "local": await this.app.vault.trash(this.app.vault.getAbstractFileByPath(thisRow.data["yamleditFirstFileColumn"]), false); break;
-              default: await this.app.vault.trash(this.app.vault.getAbstractFileByPath(thisRow.data["yamleditFirstFileColumn"]), true); break;
+              case "system": await this.app.vault.trash(this.app.vault.getAbstractFileByPath(path), true); break;
+              case "local": await this.app.vault.trash(this.app.vault.getAbstractFileByPath(path), false); break;
+              default: await this.app.vault.trash(this.app.vault.getAbstractFileByPath(path), true); break;
             }
           }
           else {
-            await this.app.vault.trash(this.app.vault.getAbstractFileByPath(thisRow.data["yamleditFirstFileColumn"]), true);
+            await this.app.vault.trash(this.app.vault.getAbstractFileByPath(path), true);
           }
           const row = this.codeblock.getRowsFromFiles()
           this.setState({

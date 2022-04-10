@@ -64,4 +64,4 @@ export default class AgtablePlugin extends Plugin {
   async onunload(): Promise<void> {
     // document.getElementById('table-menu-container').remove()
   }
-}
+} 

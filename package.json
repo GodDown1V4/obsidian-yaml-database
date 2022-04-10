@@ -1,13 +1,13 @@
 {
-  "name": "obsidian-agtable",
+  "name": "obsidian-yaml-database",
   "version": "0.0.1",
-  "description": "ag-grid table for obsidian",
+  "description": "yaml database for obsidian",
   "main": "./src/main.ts",
   "scripts": {
     "dev": "rollup --config rollup.config.js -w",
     "build": "rollup --config rollup.config.js"
   },
-  "author": "windily-cloud",
+  "author": "wd",
   "license": "ISC",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.2",
