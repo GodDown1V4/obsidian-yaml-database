@@ -3,10 +3,13 @@ import { App, Modal, ToggleComponent, Notice, DropdownComponent, SearchComponent
 import t from 'i18n'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from 'yaml/md'
 import { admittedType } from './CustomHeader'
-import { admittedTypeCellEditor, admittedTypeCellRender, Codeblock, yamlCodeblockJson } from 'yaml/parse'
+import { DataJson } from 'yaml/parse'
+import AgtablePlugin from 'main'
+import DataGrid, { columnTypes } from './DataGrid'
 
 interface Props extends ICellEditorParams {
     app: App
+    plugin: AgtablePlugin
     columnDefs: ColDef[]
     rowData: Array<{ [key: string]: string }>
 }
@@ -17,24 +20,20 @@ interface Props extends ICellEditorParams {
  * 2、页面条目限制
  */
 export class OperateMolda extends Modal {
+    grid: DataGrid
     api: GridApi
-    source: string
+    plugin: AgtablePlugin
 
-    constructor(app: App, api: GridApi, source: string) {
-        super(app)
-        this.api = api
-        this.source = source
+    constructor(grid: DataGrid) {
+        super(grid.plugin.app)
+        this.grid = grid
+        this.api = grid.api
+        this.plugin = grid.plugin
     }
 
-    onOpen(): void {
-        const title = this.titleEl
-        title.setText(t("tableSettings"));
-
+    propHideControl() {
         const { contentEl } = this;
-
-        const coldefs = this.api.getColumnDefs()
-
-        // 属性显隐控制
+        const superThis = this
         const HideControlDivTitle = contentEl.createEl("h3", {
             attr: {
                 'data-toggle': "tooltip",
@@ -49,7 +48,7 @@ export class OperateMolda extends Modal {
         HideControlDivTitle.onclick = function () {
             columnHideControlDiv.style.display = (columnHideControlDiv.style.display == 'block') ? 'none' : 'block'
         }
-        const toggleList = coldefs.map((col: ColDef) => {
+        const toggleList = this.api.getColumnDefs().map((col: ColDef) => {
             const div = document.createElement("div")
             div.setAttr("class", "tableSettingsModal")
             const toggle = new ToggleComponent(div)
@@ -68,22 +67,20 @@ export class OperateMolda extends Modal {
             }
         })
         confirmButton1.innerHTML = t("applyTheChanges")
-        const superThis = this
         confirmButton1.onclick = function () {
             const toggleValuesList = toggleList.map((toggle) => {
                 return toggle.getValue()
             })
-            const newColumns = coldefs.map((col: ColDef, index) => {
-                col.hide = !toggleValuesList[index]
-                return col
+            superThis.api.getColumnDefs().map((col: ColDef, index) => {
+                superThis.grid.colimnApi.setColumnVisible(col.colId, toggleValuesList[index])
             })
-            superThis.api.setColumnDefs(newColumns)
-            new Codeblock(superThis.app, superThis.source).saveColDef(superThis.api)
             superThis.close()
         }
-        contentEl.createEl("hr")
+    }
 
-        // 表格页面条数控制 TODO
+    async paginationPageSizeControl() {
+        const { contentEl } = this;
+        const superThis = this
         const paginationPageSizeTitle = contentEl.createEl("h3", {
             attr: {
                 'data-toggle': "tooltip",
@@ -98,12 +95,14 @@ export class OperateMolda extends Modal {
         paginationPageSizeTitle.onclick = function () {
             paginationSizeTitleDiv.style.display = (paginationSizeTitleDiv.style.display == 'block') ? 'none' : 'block'
         }
+
+        const DBconfig = await this.grid.getDBconfig()
         const pageSizeInput = paginationSizeTitleDiv.createEl("input", {
             attr: {
                 type: "number",
                 class: 'filterInput',
                 placeholder: t("plsInput"),
-                "value": JSON.parse(this.source).paginationSize
+                "value": DBconfig.paginationSize
             }
         })
         const pageSizeConfirmButton = paginationSizeTitleDiv.createEl("button", {
@@ -120,15 +119,14 @@ export class OperateMolda extends Modal {
             else if (size < 0) {
                 size = 1
             }
-            new Codeblock(superThis.app, superThis.source).setPaginationSize(size)
+            new DataJson(superThis.grid).setPaginationSize(superThis.api, size)
             superThis.close()
         }
+    }
 
-
-
-        contentEl.createEl("hr")
-
-        // 文档筛选条件设置：当前表格管理的文档对象
+    async folderControl() {
+        const { contentEl } = this;
+        const superThis = this
         const FolderTitle = contentEl.createEl("h3", {
             attr: {
                 'data-toggle': "tooltip",
@@ -145,13 +143,15 @@ export class OperateMolda extends Modal {
         }
         FolderDiv.createDiv().innerHTML = t("selectFolderIntro")
         FolderDiv.createDiv().innerHTML = " "
+
+        const DBconfig = await this.grid.getDBconfig()
         const folderInput = FolderDiv.createEl("input", {
             attr: {
                 type: "text",
                 class: 'filterInput',
                 placeholder: t("plsSelectAFolder"),
                 list: "folderSearch",
-                "value": JSON.parse(this.source).folder
+                "value": DBconfig.folder
             }
         })
         const folderInputDataList = FolderDiv.createEl("datalist", {
@@ -174,16 +174,20 @@ export class OperateMolda extends Modal {
         folderConfirmButton.innerHTML = t("applyTheChanges")
         folderConfirmButton.onclick = function () {
             if (new Search(superThis.app).getAllFoldersPath().indexOf(folderInput.value) != -1) {
-                new Codeblock(superThis.app, superThis.source).setFolder(folderInput.value)
+                new DataJson(superThis.grid).setFolder(folderInput.value)
+                superThis.grid.refreshBtnOnClick()
                 superThis.close()
             }
             else {
                 new Notice(`${t("isAWrongFolderPath")}: ${folderInput.value}`)
             }
         }
-        contentEl.createEl("hr")
+    }
 
-        // 新建文档模板设置
+    async templateControl() {
+
+        const { contentEl } = this;
+        const superThis = this
         const templateTitle = contentEl.createEl("h3", {
             attr: {
                 'data-toggle': "tooltip",
@@ -198,6 +202,7 @@ export class OperateMolda extends Modal {
         templateTitle.onclick = function () {
             templateDiv.style.display = (templateDiv.style.display == 'block') ? 'none' : 'block'
         }
+        const DBconfig = await this.grid.getDBconfig()
         templateDiv.createDiv().innerHTML = t("templateConfig")
         const templateInput = templateDiv.createEl("input", {
             attr: {
@@ -205,7 +210,7 @@ export class OperateMolda extends Modal {
                 class: 'filterInput',
                 placeholder: t("plsInput"),
                 list: "templateSearch",
-                "value": JSON.parse(this.source).templatePath
+                "value": DBconfig.templatePath
             }
         })
         const templateInputDataList = templateDiv.createEl("datalist", {
@@ -227,23 +232,47 @@ export class OperateMolda extends Modal {
         })
         templateConfirmButton.innerHTML = t("applyTheChanges")
         templateConfirmButton.onclick = function () {
-            new Codeblock(superThis.app, superThis.source).setTemplate(templateInput.value)
+            new DataJson(superThis.grid).setTemplate(templateInput.value)
             superThis.close()
         }
+    }
+
+    onOpen(): void {
+        const title = this.titleEl
+        title.setText(t("tableSettings"));
+
+        const { contentEl } = this;
+
+        // 属性显隐控制
+        this.propHideControl()
+        contentEl.createEl("hr")
+
+        // 表格页面条数控制
+        this.paginationPageSizeControl()
+        contentEl.createEl("hr")
+
+        // 文档筛选条件设置：当前表格管理的文档对象
+        this.folderControl()
+        contentEl.createEl("hr")
+
+        // 新建文档模板设置
+        this.templateControl()
         contentEl.createEl("hr")
     }
 }
 
 
 export class EditPropertyMolda extends Modal {
+    grid: DataGrid
+    plugin: AgtablePlugin
     api: GridApi
-    source: string
     propertyName: string
 
-    constructor(app: App, api: GridApi, source: string, propertyName: string) {
-        super(app)
-        this.api = api
-        this.source = source
+    constructor(grid: DataGrid, propertyName: string) {
+        super(grid.app)
+        this.grid = grid
+        this.plugin = grid.plugin
+        this.api = grid.api
         this.propertyName = propertyName
     }
 
@@ -252,7 +281,7 @@ export class EditPropertyMolda extends Modal {
         title.setText(`${t("editProperty")}: ${this.propertyName}`);
 
         const { contentEl } = this;
-
+        const superThis = this
         var columns = this.api.getColumnDefs()
 
         // 属性类型选择
@@ -275,38 +304,45 @@ export class EditPropertyMolda extends Modal {
                 dropdown.addOption(T, t(T))
             }
         })
-        contentEl.createEl("hr")
         // 根据dropdown动态设置type配置区域
         const typeConfigDiv = contentEl.createDiv()
-        typeConfigDiv.innerHTML = t("typeConfig")
-        typeConfigDiv.createEl("br")
+        typeConfigDiv.innerHTML = ""
         var typeConfigValue = ""
         function solveTypeConfig() {
+            var columns = superThis.api.getColumnDefs()
+            // console.log(dropdown.getValue());
+            typeConfigDiv.innerHTML = ""
             switch (dropdown.getValue()) {
                 case "select": {
+                    typeConfigDiv.createEl("br")
+                    typeConfigDiv.innerHTML = t("typeConfig")
+                    typeConfigDiv.createEl("br")
                     const textarea = typeConfigDiv.createEl("textarea")
                     textarea.placeholder = t("selectOptionsIntro")
                     columns.map((col: ColDef) => {
                         if (col.colId == thisColumn && col.cellEditorParams["values"]) {
                             textarea.defaultValue = col.cellEditorParams["values"].join("\n")
+                            typeConfigValue = textarea.value
                         }
                     })
                     textarea.oninput = function () {
                         typeConfigValue = textarea.value
                     }
                 }; break;
-                case "multi-select": {
-                    const textarea = typeConfigDiv.createEl("textarea")
-                    textarea.placeholder = t("selectOptionsIntro")
-                    columns.map((col: ColDef) => {
-                        if (col.colId == thisColumn && col.cellEditorParams["values"]) {
-                            textarea.defaultValue = col.cellEditorParams["values"].join("\n")
-                        }
-                    })
-                    textarea.oninput = function () {
-                        typeConfigValue = textarea.value
-                    }
-                }; break;
+                // TODO 多选
+                // case "multi-select": {
+                //     const textarea = typeConfigDiv.createEl("textarea")
+                //     textarea.placeholder = t("selectOptionsIntro")
+                //     columns.map((col: ColDef) => {
+                //         if (col.colId == thisColumn && col.cellEditorParams["values"]) {
+                //             textarea.defaultValue = col.cellEditorParams["values"].join("\n")
+                //             typeConfigValue = textarea.value
+                //         }
+                //     })
+                //     textarea.oninput = function () {
+                //         typeConfigValue = textarea.value
+                //     }
+                // }; break;
                 default: break;
             }
         }
@@ -314,85 +350,69 @@ export class EditPropertyMolda extends Modal {
         dropdown.onChange(() => {
             solveTypeConfig()
         })
-        contentEl.createEl("hr")
-        // 显隐和删除控制
-        const hideAndDeleteDiv = contentEl.createDiv()
-        // 显隐
-        hideAndDeleteDiv.createSpan().innerHTML = `${t("hideInView")}&nbsp;&nbsp;`
-        new ToggleComponent(hideAndDeleteDiv)
-            .setValue(true)
-            .onChange((value) => {
-                const columns = this.api.getColumnDefs()
-                const newColums = columns.map((col: ColDef) => {
-                    if (col.colId == thisColumn) {
-                        col.hide = !value
-                    }
-                    return col
-                })
-                this.api.setColumnDefs(newColums)
-            })
-        // 删除
-        hideAndDeleteDiv.createEl("br")
-        new ButtonComponent(hideAndDeleteDiv)
-            .setButtonText(t("deleteProperty"))
-            .onClick(() => {
-                const yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.source)
-                oneOperationYamlChangeHistory.length = 0
-                new Search(this.app).getTAbstractFilesOfAFolder(yamlCodeblockJson.folder).map((file) => {
-                    new MDIO(this.app, file.path).delProperty(thisColumn)
-                })
-                allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
-                // 由于修改了文档的yaml属性，所以这里会直接保存，会导致表格重新渲染
-                setTimeout(() => {
-                    new Codeblock(this.app, this.source).saveColDef(this.api)
-                }, 100)
-                this.close()
-            })
-        contentEl.createEl("hr")
         // 应用变更按钮
+        contentEl.createEl("br")
         const confirmButton = contentEl.createEl("button", {
             attr: {
                 "style": "background-color: #CC3333;color:white"
             }
         })
         confirmButton.innerHTML = t("applyTheChanges")
-        const superThis = this
         confirmButton.onclick = function () {
             const type = dropdown.getValue()
-            switch (type) {
-                case "select": {
-                    // 处理列
-                    const newColums = columns.map((col: ColDef) => {
-                        if (col.colId == thisColumn) {
-                            col.type = type
-                            col.cellEditor = admittedTypeCellEditor[type]
-                            col.cellEditorParams = {
-                                "values": typeConfigValue.split("\n")
-                            }
+            const newColums = columns.map((col: ColDef) => {
+                if (col.colId == thisColumn) {
+                    col.type = type
+                    if (type == "select") {
+                        col.cellEditorParams = {
+                            "values": typeConfigValue.split("\n")
                         }
-                        return col
-                    })
-                    columns = newColums
-                }; break;
-                default: {
-                    // 处理列
-                    const newColums = columns.map((col: ColDef) => {
-                        if (col.colId == thisColumn) {
-                            col.type = type
-                            col.cellEditor = admittedTypeCellEditor[type]
-                            col.cellRenderer = admittedTypeCellRender[type]
-                        }
-                        return col
-                    })
-                    columns = newColums
-                }; break
-            }
-            superThis.api.setColumnDefs(columns)
+                    }
+                }
+                return col
+            })
+            superThis.grid.setState({
+                columnDefs: newColums
+            })
+            // superThis.api.setColumnDefs(columns)
             superThis.close()
         }
 
-        // 表格页面条数控制 TODO
-        // 文档筛选条件设置：当前表格管理的文档对象
+        contentEl.createEl("hr")
+        // 显隐和删除控制
+        const hideControlDiv = contentEl.createDiv()
+        // 显隐
+        hideControlDiv.createSpan().innerHTML = `${t("hideInView")}&nbsp;&nbsp;`
+        new ToggleComponent(hideControlDiv)
+            .setValue(true)
+            .onChange((value) => {
+                this.grid.colimnApi.setColumnVisible(thisColumn, value)
+            })
+        contentEl.createEl("hr")
+        // 删除
+        new ButtonComponent(contentEl)
+            .setButtonText(t("deleteProperty"))
+            .onClick(async () => {
+                oneOperationYamlChangeHistory.length = 0
+                const DBconfig = await this.grid.getDBconfig()
+                new Search(this.app).getTAbstractFilesOfAFolder(DBconfig.folder).map(async (file) => {
+                    await new MDIO(this.app, file.path).delProperty(thisColumn)
+                })
+                allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
+                // 由于修改了文档的yaml属性，所以这里会直接保存，会导致表格重新渲染
+                var newCols = new Array()
+                this.grid.api.getColumnDefs().map((col: ColDef) => {
+                    if (col.colId != thisColumn) {
+                        newCols.push(col)
+                    }
+                })
+                this.api.setColumnDefs(newCols)
+                this.close()
+            })
 
+
+    }
+
+    onClose(): void {
     }
 }

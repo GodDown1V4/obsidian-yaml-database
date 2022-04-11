@@ -1,4 +1,8 @@
 export default {
+  // 设置面板操作
+  settingsIntro: "As long as you have ever loaded a data table with a unique id, then he will be recorded here.",
+  deleteThisDBConfig: "Delete the configuration information for this data table",
+  deleteDBConfirm: "Are you sure you want to delete the data table configuration information? This action cannot be resumed",
   // 还原操作
   restore: "Restore the previous operation",
   // 行操作删除文档

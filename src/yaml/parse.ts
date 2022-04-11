@@ -1,39 +1,42 @@
-import { ColDef, GridApi } from "ag-grid-community";
+import { ColDef, Grid, GridApi } from "ag-grid-community";
 import t from "i18n";
-import { App, Notice } from "obsidian";
+import { App, Notice, Plugin } from "obsidian";
 import { MDIO, Search } from "./md";
 import { DateEditor, InlinkEditor, NumberEditor, TimeEditor } from "components/CustomCellEditor";
 import { ImgCellRender, InLinkCellRender, TagCellRender, TodoCellRender } from "components/CustomCellRender";
+import AgtablePlugin from "main";
+import DataGrid from "components/DataGrid";
+import CustomHeader from "components/CustomHeader";
 
 var hiddenPropInTable = ""
 
-export const admittedTypeCellRender = {
-    "text": "",
-    "number": "",
-    "date": "",
-    "time": "",
+export const admittedTypeCellRender: Record<string, any> = {
+    "text": "undefined",
+    "number": "undefined",
+    "date": "undefined",
+    "time": "undefined",
     "checkbox": TodoCellRender,
     "img": ImgCellRender,
     "tags": TagCellRender,
-    "textarea": "",
+    "textarea": "undefined",
     "inLink": InLinkCellRender,
-    "select": "",
+    "select": "undefined",
 }
-export const admittedTypeCellEditor = {
-    "text": "",
+export const admittedTypeCellEditor: Record<string, any> = {
+    "text": "agTextCellEditor",
     "number": NumberEditor,
     "date": DateEditor,
     "time": TimeEditor,
-    "checkbox": "",
-    "img": "",
-    "tags": "",
+    "checkbox": "agTextCellEditor",
+    "img": "agTextCellEditor",
+    "tags": "agTextCellEditor",
     "textarea": "agLargeTextCellEditor",
     "inLink": InlinkEditor,
     "select": "agSelectCellEditor",
 }
 
 
-export interface yamlCodeblockJson {
+export interface dbconfig {
     id: string                             // id
     colDef: Array<ColDef>                  // 列定义
     filterModal: { [key: string]: any; }   // 列过滤器
@@ -42,26 +45,17 @@ export interface yamlCodeblockJson {
     templatePath: string
 }
 
-export class Codeblock {
+export class DataJson {
+    grid: DataGrid
     app: App;
-    source: string;     // codeblock中的代码语句
+    plugin: AgtablePlugin
 
-    constructor(app: App, source: string) {
-        this.app = app;
-        this.source = source;
+    constructor(grid: DataGrid) {
+        this.grid = grid
+        this.plugin = grid.plugin
+        this.app = grid.plugin.app;
 
         this.initYamlCodeblockJson()
-    }
-
-    private async write(newJson: yamlCodeblockJson) {
-        // console.log("写入json到文档");
-
-        // 写入source
-        const file = this.app.workspace.getActiveFile()
-        const oldContent = await this.app.vault.read(file)
-        await this.app.vault.modify(file, oldContent.replace(this.source, JSON.stringify(newJson).replace(/\n/g, '') + "\n"))
-        // 更新source
-        this.source = JSON.stringify(newJson)
     }
 
     /**
@@ -78,19 +72,18 @@ export class Codeblock {
      *      1.3、添加新的有效列
      *      1.4、若1、2、3步均无异常发生，则退出函数；否则写入代码块（会刷新表格）
      */
-    private initYamlCodeblockJson() {
-        var yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.source)
-
+    private async initYamlCodeblockJson() {
+        var DBconfig = await this.grid.getDBconfig()
         // console.log('codblock 初始化', yamlCodeblockJson);
 
-        if (!yamlCodeblockJson.folder) {
-            yamlCodeblockJson.folder = '/'
+        if (!DBconfig.folder) {
+            DBconfig.folder = '/'
             new Notice(t("setRootAsFolder"))
         }
-        const yamlPropertiesName = new Search(this.app).getYamlPropertiesNameOfAFolder(yamlCodeblockJson.folder)
+        const yamlPropertiesName = new Search(this.app).getYamlPropertiesNameOfAFolder(DBconfig.folder)
 
-        if (!yamlCodeblockJson.colDef) {
-            yamlCodeblockJson.colDef = new Array()
+        if (!DBconfig.colDef) {
+            DBconfig.colDef = new Array()
         }
 
         var isOk = true
@@ -98,7 +91,7 @@ export class Codeblock {
         // 1、获取source中colDef有效列和失效列
         var validColDefNameList: Array<string> = new Array()
         var invalidColDefIndexList: Array<number> = new Array()
-        yamlCodeblockJson.colDef.map((colDef, index) => {
+        DBconfig.colDef.map((colDef: ColDef, index: number) => {
             if (yamlPropertiesName.indexOf(colDef.field) != -1) {
                 validColDefNameList.push(colDef.colId)
             }
@@ -117,13 +110,13 @@ export class Codeblock {
 
         // 1.1、删除失效列
         invalidColDefIndexList.map((value) => {
-            yamlCodeblockJson.colDef.splice(value, 1)
+            DBconfig.colDef.splice(value, 1)
         })
         // 1.2、检查有效列中是否包含 yamleditFirstFileColumn 是否存在
         if (validColDefNameList.indexOf("yamleditFirstFileColumn") == -1) {
             isOk = false
             validColDefNameList.unshift("yamleditFirstFileColumn")
-            yamlCodeblockJson.colDef.unshift({
+            DBconfig.colDef.unshift({
                 colId: "yamleditFirstFileColumn",
                 field: "yamleditFirstFileColumn",
                 headerName: t("yamleditFirstFileColumn"),
@@ -138,7 +131,7 @@ export class Codeblock {
             // 若该属性在source的colDef中不存在则添加
             if (validColDefNameList.indexOf(prop) == -1) {
                 isOk = false
-                yamlCodeblockJson.colDef.push({
+                DBconfig.colDef.push({
                     colId: prop,
                     field: prop,
                     headerName: prop,
@@ -150,42 +143,44 @@ export class Codeblock {
         })
 
         // 初始化页面分页条数，默认50条
-        if (!yamlCodeblockJson.paginationSize) {
+        if (!DBconfig.paginationSize) {
             isOk = false
-            yamlCodeblockJson.paginationSize = 50
+            DBconfig.paginationSize = 50
         }
-        else if (yamlCodeblockJson.paginationSize > 1000) {
+        else if (DBconfig.paginationSize > 1000) {
             isOk = false
-            yamlCodeblockJson.paginationSize = 1000
+            DBconfig.paginationSize = 1000
         }
-        else if (yamlCodeblockJson.paginationSize < 0) {
+        else if (DBconfig.paginationSize < 0) {
             isOk = false
-            yamlCodeblockJson.paginationSize = 1
+            DBconfig.paginationSize = 1
         }
 
         // 若不ok说明source属性和库中的yaml属性不匹配，将库中的属性更新到yaml表格中去，即写入代码块
         if (!isOk) {
-            this.write(yamlCodeblockJson)
+            this.grid.setDBconfig(DBconfig)
         }
     }
 
-    getColumsFromFiles() {
-        const yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.source)
-        const newColDefs = yamlCodeblockJson.colDef.map((el: ColDef) => {
-            el.cellEditor = admittedTypeCellEditor[String(el.type)]
-            el.cellRenderer = admittedTypeCellRender[String(el.type)]
-            el.editable = (el.type == "checkbox") ? false : true
+    async getColumsFromDataJson() {
+        await this.initYamlCodeblockJson()
+        var DBconfig = await this.grid.getDBconfig()
+        const newColDefs = DBconfig.colDef.map((el: ColDef) => {
+            // el.cellEditor = admittedTypeCellEditor[String(el.type)]
+            // el.cellRenderer = admittedTypeCellRender[String(el.type)]
+            // el.editable = (el.type == "checkbox") ? false : true
+            // el.headerComponent = this.grid.state.isEditingHeaders ? CustomHeader : ""
             return el
         })
         return newColDefs
     }
 
-    getRowsFromFiles() {
-        const yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.source)
-        var cols = this.getColumsFromFiles()
-        const rows = new Search(this.app).getTAbstractFilesOfAFolder(yamlCodeblockJson.folder).map((tabstractFile) => {
+    async getRowsFromDataFiles() {
+        var DBconfig = await this.grid.getDBconfig()
+        var cols = await this.getColumsFromDataJson()
+        const rows = new Search(this.app).getTAbstractFilesOfAFolder(DBconfig.folder).map((tabstractFile) => {
             var md = new MDIO(this.app, tabstractFile.path)
-            const arow = cols.map((col) => {
+            const arow = cols.map((col: ColDef) => {
                 if (col.field == "yamleditFirstFileColumn") {
                     return { [col.field]: tabstractFile.path }
                 } else {
@@ -197,19 +192,19 @@ export class Codeblock {
         return rows
     }
 
-    loadColDef(api: GridApi) {
+    async loadColDef(api: GridApi) {
         // console.log("加载Col");
-        const yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.source)
-        const newColDefs = yamlCodeblockJson.colDef.map((el: ColDef) => {
-            el.cellEditor = admittedTypeCellEditor[String(el.type)]
-            el.cellRenderer = admittedTypeCellRender[String(el.type)]
-            el.editable = (el.type == "checkbox") ? false : true
+        var DBconfig = await this.grid.getDBconfig()
+        const newColDefs = DBconfig.colDef.map((el: ColDef) => {
+            // el.cellEditor = admittedTypeCellEditor[String(el.type)]
+            // el.cellRenderer = admittedTypeCellRender[String(el.type)]
+            // el.editable = (el.type == "checkbox") ? false : true
             return el
         })
         api.setColumnDefs(newColDefs)
     }
 
-    saveColDef(api: GridApi) {
+    async saveColDef(api: GridApi) {
         const needToSave = [
             "colId",
             "field",
@@ -221,8 +216,8 @@ export class Codeblock {
             "width",
             "hide"
         ]
-        var yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.source)
-        yamlCodeblockJson.colDef = api.getColumnDefs().map((col: ColDef) => {
+        var DBconfig = await this.grid.getDBconfig()
+        DBconfig.colDef = api.getColumnDefs().map((col: ColDef) => {
             var newColDef: ColDef = {}
             for (var item in col) {
                 // console.log(item, col[item], typeof (col[item]))
@@ -242,36 +237,36 @@ export class Codeblock {
             }
             return newColDef
         })
-
-        this.write(yamlCodeblockJson)
+        this.grid.setDBconfig(DBconfig)
     }
 
-    loadFliterModal(api: GridApi) {
+    async loadFliterModal(api: GridApi) {
         // console.log("加载Filter");
-        const yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.source)
-        api.setFilterModel(yamlCodeblockJson.filterModal)
+        var DBconfig = await this.grid.getDBconfig()
+        api.setFilterModel(DBconfig.filterModal)
     }
 
-    saveFliterModal(api: GridApi) {
-        var yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.source)
-        yamlCodeblockJson.filterModal = api.getFilterModel()
-        this.write(yamlCodeblockJson)
+    async saveFliterModal(api: GridApi) {
+        var DBconfig = await this.grid.getDBconfig()
+        DBconfig.filterModal = api.getFilterModel()
+        this.grid.setDBconfig(DBconfig)
     }
 
-    setFolder(folderPath: string) {
-        var yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.source)
-        yamlCodeblockJson.folder = folderPath
-        this.write(yamlCodeblockJson)
+    async setFolder(folderPath: string) {
+        var DBconfig = await this.grid.getDBconfig()
+        DBconfig.folder = folderPath
+        this.grid.setDBconfig(DBconfig)
     }
-    setTemplate(filePath: string) {
-        var yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.source)
-        yamlCodeblockJson.templatePath = filePath
-        this.write(yamlCodeblockJson)
+    async setTemplate(filePath: string) {
+        var DBconfig = await this.grid.getDBconfig()
+        DBconfig.templatePath = filePath
+        this.grid.setDBconfig(DBconfig)
     }
 
-    setPaginationSize(size: number) {
-        var yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.source)
-        yamlCodeblockJson.paginationSize = size
-        this.write(yamlCodeblockJson)
+    async setPaginationSize(api: GridApi, size: number) {
+        var DBconfig = await this.grid.getDBconfig()
+        DBconfig.paginationSize = size
+        this.grid.setDBconfig(DBconfig)
+        api.paginationSetPageSize(size)
     }
 }

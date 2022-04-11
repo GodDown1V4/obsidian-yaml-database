@@ -1,10 +1,12 @@
 import React from 'react'
 import { ColDef, IHeaderParams } from 'ag-grid-community'
-import { App, Menu, Notice, Point } from 'obsidian'
+import { apiVersion, App, Menu, Notice, Point } from 'obsidian'
 import t from 'i18n'
-import { yamlCodeblockJson, admittedTypeCellEditor, admittedTypeCellRender, Codeblock } from 'yaml/parse'
+import { dbconfig, admittedTypeCellEditor, admittedTypeCellRender, DataJson } from 'yaml/parse'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from 'yaml/md'
 import { EditPropertyMolda } from './OperateModal'
+import AgtablePlugin from 'main'
+import DataGrid, { columnTypes } from './DataGrid'
 
 
 // 允许的属性类型，若不满足则设为默认类型text
@@ -22,22 +24,20 @@ export const admittedType = [
 ]
 
 const admittedTypeFilter = {
-  "text": "",
+  "text": "agTextColumnFilter",
   "number": "agNumberColumnFilter",
   "date": "agDateColumnFilter",
-  "time": "",
-  "checkbox": "",
-  "img": "",
-  "tags": "",
-  "textarea": "",
-  "inLink": "",
-  "select": "",
+  "time": "agTextColumnFilter",
+  "checkbox": "agTextColumnFilter",
+  "img": "agTextColumnFilter",
+  "tags": "agTextColumnFilter",
+  "textarea": "agTextColumnFilter",
+  "inLink": "agTextColumnFilter",
+  "select": "agTextColumnFilter",
 }
 
 interface Props extends IHeaderParams {
-  app: App
-  tableId: string
-  tableString: string
+  grid: DataGrid
 }
 
 interface State {
@@ -52,6 +52,7 @@ interface RowData {
 }
 
 export default class CustomHeader extends React.Component<Props, State> {
+
   constructor(props: Props) {
     super(props)
 
@@ -69,9 +70,10 @@ export default class CustomHeader extends React.Component<Props, State> {
   }
 
   handleContextMenu(event: React.MouseEvent<HTMLDivElement>) {
+
     event.preventDefault()
     const thisColumn = this.props.column.getColId()
-    const menu = new Menu(this.props.app)
+    const menu = new Menu(this.props.grid.app)
 
     // renameDisplayName
     menu.addItem((item) =>
@@ -100,7 +102,7 @@ export default class CustomHeader extends React.Component<Props, State> {
           .setIcon('vertical-three-dots')
           .onClick(() => {
             const thisColumn = this.props.column.getColId()
-            new EditPropertyMolda(this.props.app, this.props.api, this.props.tableString, thisColumn).open()
+            new EditPropertyMolda(this.props.grid, thisColumn).open()
           })
       )
       // renamePropName
@@ -147,86 +149,70 @@ export default class CustomHeader extends React.Component<Props, State> {
     // 赋值col
     var index1 = 0
     var index2 = 0
-    const newColumns = column.map((el: ColDef, index) => {
+    column.map((el: ColDef, index) => {
       if (el.colId == thisColumn) {
-        el.hide = true
         index1 = index
-        return el
       }
       else if (el.field == propName) {
-        el.hide = false
         index2 = index
-        return el
-      }
-      else {
-        return el
       }
     })
     // 交换
-    newColumns.splice(index2, 1, ...newColumns.splice(index1, 1, newColumns[index2]))
-    this.props.api.setColumnDefs(newColumns)
+    this.props.columnApi.setColumnVisible(propName, true)
+    this.props.columnApi.moveColumn(propName, index1)
+    this.props.columnApi.setColumnVisible(thisColumn, false)
+    this.props.columnApi.moveColumn(thisColumn, index2)
   }
 
-  addColumn(propName: string) {
+  async addColumn(propName: string) {
     const thisColumn = this.props.column.getColId()
-    const column = this.props.api.getColumnDefs()
+    var column = this.props.api.getColumnDefs()
+    var showColumns = new Array()
     var hideColumns = new Array()
-    column.map((col: ColDef) => {
+    // 获取索引、显示及隐藏的列
+    var index1 = 0
+    column.map((col: ColDef, index) => {
+      if (col.field == thisColumn) {
+        index1 = index
+      }
       if (col.hide) {
         hideColumns.push(col.colId)
       }
+      else {
+        showColumns.push(col.colId)
+      }
     })
+    // 如果添加的不是当前已经显示的列都可以添加
+    if (showColumns.indexOf(propName) == -1) {
+      // 判断是添加已有的属性还是新的属性
+      if (hideColumns.indexOf(propName) == -1) {  // 添加新的属性
+        oneOperationYamlChangeHistory.length = 0
+        const DBconfig = await this.props.grid.getDBconfig()
+        new Search(this.props.grid.app).getTAbstractFilesOfAFolder(DBconfig.folder).map(async (file) => {
+          await new MDIO(this.props.grid.app, file.path).addProperty(propName)
+        })
+        allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
 
-    // 判断是添加已有的属性还是新的属性
-    if (hideColumns.indexOf(propName) == -1) {  // 添加新的属性
-      const yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.props.tableString)
-
-      oneOperationYamlChangeHistory.length = 0
-      new Search(this.props.app).getTAbstractFilesOfAFolder(yamlCodeblockJson.folder).map((file) => {
-        new MDIO(this.props.app, file.path).addProperty(propName)
-      })
-      allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
-      // 由于修改了文档的yaml属性，所以这里会直接保存，会导致表格重新渲染
-      setTimeout(() => {
-        new Codeblock(this.props.app, this.props.tableString).saveColDef(this.props.api)
-      }, 100)
-    }
-    else {  // 切换隐藏的属性为显示
-      column.sort((a: ColDef, b: ColDef) => Number(a.hide) - Number(b.hide))  // 排序，hide从false到true
-      // 赋值col
-      var index1 = 0
-      var index2 = 0
-      const newColumns = column.map((el: ColDef, index) => {
-        if (el.field == thisColumn) {
-          index1 = index
-          return el
-        }
-        else if (el.field == propName) {
-          el.hide = false
-          index2 = index
-          return el
-        }
-        else {
-          return el
-        }
-      })
-
-      newColumns.splice(index1 + 1, 1, ...newColumns.splice(index2, 1, newColumns[index1 + 1]))
-      this.props.api.setColumnDefs(newColumns)
+        var newCols = this.props.api.getColumnDefs()
+        newCols.push({
+          colId: propName,
+          field: propName,
+          headerName: propName,
+          type: "text",
+        })
+        this.props.api.setColumnDefs(newCols)
+        // this.props.columnApi.addValueColumn(propName)
+      }
+      else {
+        this.props.columnApi.setColumnVisible(propName, true)
+      }
+      this.props.columnApi.moveColumn(propName, index1 + 1)
     }
   }
 
   HideColumn() {
     const thisColumn = this.props.column.getColId()
-    const columns = this.props.api.getColumnDefs()
-
-    const newColums = columns.map((col: ColDef) => {
-      if (col.colId == thisColumn) {
-        col.hide = true
-      }
-      return col
-    })
-    this.props.api.setColumnDefs(newColums)
+    this.props.columnApi.setColumnVisible(thisColumn, false)
   }
 
   renameHeaderName(event: React.ChangeEvent<HTMLInputElement>) {
@@ -240,17 +226,18 @@ export default class CustomHeader extends React.Component<Props, State> {
       }
       return el
     })
+
     this.props.api.setColumnDefs(newColumns)
+    // this.props.api.refreshHeader()
   }
 
-  renamePropName(event: React.ChangeEvent<HTMLInputElement>) {
+  async renamePropName(event: React.ChangeEvent<HTMLInputElement>) {
     const thisColumn = this.props.column.getColId()
     const column = this.props.api.getColumnDefs()
-
-    const yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.props.tableString)
     oneOperationYamlChangeHistory.length = 0
-    new Search(this.props.app).getTAbstractFilesOfAFolder(yamlCodeblockJson.folder).map((file) => {
-      new MDIO(this.props.app, file.path).updatePropertyName(thisColumn, event.target.value)
+    const DBconfig = await this.props.grid.getDBconfig()
+    new Search(this.props.grid.app).getTAbstractFilesOfAFolder(DBconfig.folder).map(async (file) => {
+      await new MDIO(this.props.grid.app, file.path).updatePropertyName(thisColumn, event.target.value)
     })
     allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
 
@@ -276,25 +263,8 @@ export default class CustomHeader extends React.Component<Props, State> {
     this.props.api.setRowData(newRowData)
     // 由于修改了文档的yaml属性，所以这里会直接保存，会导致表格重新渲染
     setTimeout(() => {
-      new Codeblock(this.props.app, this.props.tableString).saveColDef(this.props.api)
+      new DataJson(this.props.grid).saveColDef(this.props.api)
     }, 100)
-  }
-
-  changePropType(event: React.ChangeEvent<HTMLSelectElement>) {
-    const thisColumn = this.props.column.getColId()
-    const column = this.props.api.getColumnDefs()
-
-    // 赋值col
-    const newColumns = column.map((el: ColDef, index) => {
-      if (el.colId == thisColumn) {
-        el.type = event.target.value
-        el.cellEditor = admittedTypeCellEditor[String(el.type)]
-        el.cellRenderer = admittedTypeCellRender[String(el.type)]
-        el.editable = (el.type == "checkbox") ? false : true
-      }
-      return el
-    })
-    this.props.api.setColumnDefs(newColumns)
   }
 
 
@@ -342,19 +312,19 @@ export default class CustomHeader extends React.Component<Props, State> {
           style={{ height: '100%', width: '100%' }}
           defaultValue={thisColumn}
           placeholder={t("plsInput")}
-          onInput={(event) => {
+          onInput={async (event) => {
             if (event.target["value"] != thisColumn) {
-              const yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.props.tableString)
-              if (new Search(this.props.app).getYamlPropertiesNameOfAFolder(yamlCodeblockJson.folder).indexOf(event.target["value"]) != -1) {
+              const DBconfig = await this.props.grid.getDBconfig()
+              if (new Search(this.props.grid.app).getYamlPropertiesNameOfAFolder(DBconfig.folder).indexOf(event.target["value"]) != -1) {
                 new Notice(t("repeatedName"))
               }
             }
           }}
-          onBlur={(event) => {
+          onBlur={async (event) => {
             this.setState({ isRenamingPropName: false })
             if (event.target.value != thisColumn) {
-              const yamlCodeblockJson: yamlCodeblockJson = JSON.parse(this.props.tableString)
-              const isRepeated = new Search(this.props.app).getYamlPropertiesNameOfAFolder(yamlCodeblockJson.folder).indexOf(event.target["value"]) == -1 ? false : true
+              const DBconfig = await this.props.grid.getDBconfig()
+              const isRepeated = new Search(this.props.grid.app).getYamlPropertiesNameOfAFolder(DBconfig.folder).indexOf(event.target["value"]) == -1 ? false : true
               if (event.target.value != thisColumn && event.target.value.trim() && !isRepeated) {
                 this.renamePropName(event)
               }

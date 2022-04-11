@@ -1,4 +1,8 @@
 export default {
+  // 设置面板操作
+  settingsIntro: "只要您曾经加载过一个有特殊id的数据表格, 那么他就会被记录在这里",
+  deleteThisDBConfig: "删除这个数据表格的配置信息",
+  deleteDBConfirm: "您确定要删除该数据表格配置信息？此操作无法恢复",
   // 还原操作
   restore: "还原上一步操作",
   // 行操作删除文档
