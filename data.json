@@ -221,7 +221,8 @@
           "headerName": "文件",
           "type": "inLink",
           "width": 200,
-          "hide": false
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "banner",
@@ -229,7 +230,9 @@
           "headerName": "banner",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "tag",
@@ -237,15 +240,9 @@
           "headerName": "tag",
           "type": "text",
           "width": 200,
-          "hide": true
-        },
-        {
-          "colId": "一天8杯水",
-          "field": "一天8杯水",
-          "headerName": "一天8杯水",
-          "type": "text",
-          "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "官方网站",
@@ -253,7 +250,17 @@
           "headerName": "官方网站",
           "type": "text",
           "width": 200,
-          "hide": true
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "一天8杯水",
+          "field": "一天8杯水",
+          "headerName": "一天8杯水",
+          "type": "textarea",
+          "width": 200,
+          "sort": "desc",
+          "sortIndex": 0
         },
         {
           "colId": "海报",
@@ -261,7 +268,9 @@
           "headerName": "海报",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "已看完",
@@ -269,7 +278,9 @@
           "headerName": "已看完",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "评分",
@@ -277,7 +288,9 @@
           "headerName": "评分",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "观影时间",
@@ -285,7 +298,9 @@
           "headerName": "观影时间",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "导演",
@@ -293,7 +308,9 @@
           "headerName": "导演",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "编剧",
@@ -301,7 +318,9 @@
           "headerName": "编剧",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "主演",
@@ -309,7 +328,9 @@
           "headerName": "主演",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "类型",
@@ -317,7 +338,9 @@
           "headerName": "类型",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "制片国家/地区",
@@ -325,7 +348,9 @@
           "headerName": "制片国家/地区",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "语言",
@@ -333,7 +358,9 @@
           "headerName": "语言",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "上映日期",
@@ -341,7 +368,9 @@
           "headerName": "上映日期",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "片长",
@@ -349,7 +378,9 @@
           "headerName": "片长",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "又名",
@@ -357,7 +388,9 @@
           "headerName": "又名",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "IMDb",
@@ -365,7 +398,9 @@
           "headerName": "IMDb",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "banner_y",
@@ -373,7 +408,9 @@
           "headerName": "banner_y",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "banner_x",
@@ -381,7 +418,9 @@
           "headerName": "banner_x",
           "type": "text",
           "width": 200,
-          "hide": true
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         }
       ],
       "folder": "电影2",

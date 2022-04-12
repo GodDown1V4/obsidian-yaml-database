@@ -2,12 +2,13 @@ import { ICellRendererParams } from 'ag-grid-community'
 import React, { Component, createRef } from 'react'
 import { App, MarkdownRenderer } from 'obsidian'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory } from 'yaml/md'
+import { linkSync } from 'fs'
 
 interface Props extends ICellRendererParams {
   app: App
 }
 
-// export default class CustomCellRenderer extends Component<Props> {
+// export class textCellRenderer extends Component<Props> {
 //   private cellValue: string
 //   cellRef: React.RefObject<HTMLSpanElement>
 //   constructor(props: Props) {
@@ -29,7 +30,39 @@ interface Props extends ICellRendererParams {
 //     return <span ref={this.cellRef}></span>
 //   }
 // }
+export class TextCellRender extends Component<Props, State> {
 
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      cellValue: TextCellRender.getValueToDisplay(props.value)
+    }
+  }
+
+  // update cellValue when the cell's props are updated
+  static getDerivedStateFromProps(nextProps: any) {
+    return {
+      cellValue: TextCellRender.getValueToDisplay(nextProps)
+    };
+  }
+
+  static getValueToDisplay(params: any) {
+    return params.valueFormatted ? params.valueFormatted : params.value;
+  }
+
+  render() {
+    // console.log(this.state.cellValue);
+    // var lines: string[] = 
+
+    return (
+      <>
+        {this.state.cellValue.split("\n").map((line: string) => {
+          return <p>{line}</p>
+        })}
+      </>
+    )
+  }
+}
 
 interface State {
   cellValue: any

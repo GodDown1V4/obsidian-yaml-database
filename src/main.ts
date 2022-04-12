@@ -136,11 +136,6 @@ export default class AgtablePlugin extends Plugin {
   async saveSettings() {
     await this.saveData(this.settings);
   }
-
-
-  async onunload(): Promise<void> {
-    // document.getElementById('table-menu-container').remove()
-  }
 }
 
 

@@ -5,6 +5,13 @@ import postcss from 'rollup-plugin-postcss'
 
 const isProd = process.env.BUILD === 'production'
 
+
+const Global = `var process = {
+  env: {
+    NODE_ENV: 'production'
+  }
+}`
+
 export default {
   input: './src/main.ts',
   output: {
@@ -13,6 +20,7 @@ export default {
     sourcemapExcludeSources: isProd,
     format: 'cjs',
     exports: 'default',
+    banner: Global,
   },
   external: ['obsidian'],
   plugins: [

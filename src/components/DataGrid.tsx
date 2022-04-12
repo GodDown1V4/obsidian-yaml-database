@@ -21,7 +21,7 @@ import {
   ValueSetterParams,
 } from 'ag-grid-community'
 import CustomHeader from './CustomHeader'
-import { ImgCellRender, InLinkCellRender, TagCellRender, TodoCellRender } from './CustomCellRender'
+import { ImgCellRender, InLinkCellRender, TagCellRender, TextCellRender, TodoCellRender } from './CustomCellRender'
 import { DataJson, dbconfig } from 'yaml/parse'
 import { OperateMolda } from './OperateModal'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from 'yaml/md'
@@ -51,7 +51,7 @@ interface DataGridTable {
 // 自定义组件
 export const components = {
   // 单元格渲染组件
-  'CustomCellRenderer': "undifined",
+  'CustomCellRenderer': TextCellRender,
   'TodoCellRender': TodoCellRender,
   'ImgCellRender': ImgCellRender,
   'TagCellRender': TagCellRender,
@@ -66,22 +66,22 @@ export const components = {
 // 定义列类型
 export const columnTypes = {
   'text': {
-    cellRenderer: "undifined",
+    cellRenderer: TextCellRender,
     cellEditor: 'agTextCellEditor',
     filter: 'agTextColumnFilter',
   },
   'number': {
-    cellRenderer: "undifined",
+    cellRenderer: TextCellRender,
     cellEditor: NumberEditor,
     filter: 'agNumberColumnFilter',
   },
   'date': {
-    cellRenderer: "undifined",
+    cellRenderer: TextCellRender,
     cellEditor: DateEditor,
     filter: 'agDateColumnFilter',
   },
   'time': {
-    cellRenderer: "undifined",
+    cellRenderer: TextCellRender,
     cellEditor: TimeEditor,
     filter: 'agTextColumnFilter',
   },
@@ -102,7 +102,7 @@ export const columnTypes = {
     filter: 'agTextColumnFilter',
   },
   'textarea': {
-    cellRenderer: "undifined",
+    cellRenderer: TextCellRender,
     cellEditor: 'agLargeTextCellEditor',
     filter: 'agTextColumnFilter',
   },
@@ -112,7 +112,7 @@ export const columnTypes = {
     filter: 'agTextColumnFilter',
   },
   'select': {
-    cellRenderer: "undifined",
+    cellRenderer: TextCellRender,
     cellEditor: 'agSelectCellEditor',
     filter: 'agTextColumnFilter',
   },
@@ -184,7 +184,7 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
         const colId = params.column.getId()
         let currentValue = params.data[colId]
         while (/\n/.test(currentValue)) {
-          currentValue = currentValue.replace('<br/>', '\n')
+          currentValue = currentValue.replace('\n', '<br/>')
         }
         return currentValue
       },
@@ -232,6 +232,7 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
         return el
       })
       this.api.setColumnDefs(newColumns)
+      this.dataJson.saveColDef(this.api)
     }
 
   }
@@ -370,30 +371,19 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
     }
   }
 
-  onGridReady(event: GridReadyEvent) {
+  async onGridReady(event: GridReadyEvent) {
     // console.log("GridReady");
-
-    const focusedRow = localStorage.getItem('focusedRow')
-    if (!focusedRow) {
-      return
-    }
-    const colKey = focusedRow.split(',')[0]
-    const rowIndex = parseInt(focusedRow.split(',')[1])
-    event.api.setFocusedCell(rowIndex, colKey)
     this.colimnApi = event.columnApi
     this.api = event.api
-
     this.dataJson = new DataJson(this)
 
     // 初始化行列
-    this.dataJson.getColumsFromDataJson().then(column => {
-      this.dataJson.getRowsFromDataFiles().then(row => {
-        console.log("从JSON读取列, 从文件读取行");
-        this.setState({
-          columnDefs: column,
-          rowData: row
-        })
-      })
+    const column = await this.dataJson.getColumsFromDataJson()
+    const row = await this.dataJson.getRowsFromDataFiles()
+    // console.log("从JSON读取列, 从文件读取行");
+    this.setState({
+      columnDefs: column,
+      rowData: row
     })
     // filter初始化
     this.dataJson.loadFliterModal(event.api)
@@ -560,14 +550,14 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
           </button>
 
           <button
-            style={{ "display": this.state.displayOperateButton ? "inline" : "none" }}
+            style={{ "display": this.state.displayOperateButton && !this.state.isEditingHeaders ? "inline" : "none" }}
             onClick={() => { new OperateMolda(this).open() }}
           >
             {t("tableSettings")}
           </button>
 
           <button
-            style={{ "display": this.state.displayOperateButton ? "inline" : "none" }}
+            style={{ "display": this.state.displayOperateButton && !this.state.isEditingHeaders ? "inline" : "none" }}
             onClick={this.refreshBtnOnClick}
           >
             {t("refresh")}

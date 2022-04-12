@@ -74,6 +74,7 @@ export class OperateMolda extends Modal {
             superThis.api.getColumnDefs().map((col: ColDef, index) => {
                 superThis.grid.colimnApi.setColumnVisible(col.colId, toggleValuesList[index])
             })
+            new DataJson(superThis.grid).saveColDef(superThis.api)
             superThis.close()
         }
     }
