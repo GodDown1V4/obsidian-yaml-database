@@ -177,19 +177,6 @@
 | 单选（select）      | 可配置候选项 | 可直接在输入框创建候选项<br />仅可在属性配置页面删除、排序候选项 |
 | 多选（multiSelect） | 可配置候选项 | 可直接在输入框创建候选项<br />仅可在属性配置页面删除、排序候选项 |
 
-- 文本（text）
-- 数字（number）
-- 日期（date）
-- 时间（time）
-- 复选框（checkbox）
-- 图片（img）
-- 链接（url）
-- 标签（tags）
-- 文本框（textarea）
-- 内部链接（inLink）
-- 单选（select）
-- 多选（multiSelect）
-
 ### 数据表格配置信息存储（高级）
 
 - 所有`id`对应的数据表格的配置信息都存储在插件所在文件夹中的`data.json`中，它包含以下几个参数，在此说明以方便使用：<img src="https://user-images.githubusercontent.com/39726621/162576930-d194f5dd-6418-4b34-a38d-9436696f16f7.png" alt="image" width="300px" />
