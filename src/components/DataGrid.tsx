@@ -21,12 +21,12 @@ import {
   ValueSetterParams,
 } from 'ag-grid-community'
 import CustomHeader from './CustomHeader'
-import { ImgCellRender, InLinkCellRender, TagCellRender, TextCellRender, TodoCellRender } from './CustomCellRender'
+import { ImgCellRender, InLinkCellRender, TagCellRender, TextCellRender, TodoCellRender, UrlCellRender } from './CustomCellRender'
 import { DataJson, dbconfig } from 'yaml/parse'
 import { OperateMolda } from './OperateModal'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from 'yaml/md'
 import AgtablePlugin from 'main'
-import { DateEditor, InlinkEditor, NumberEditor, TimeEditor } from './CustomCellEditor'
+import { DateEditor, InlinkEditor, NumberEditor, MultiSelectEditor, TimeEditor, SelectEditor } from './CustomCellEditor'
 
 
 
@@ -96,9 +96,14 @@ export const columnTypes = {
     cellEditor: 'agTextCellEditor',
     filter: 'agTextColumnFilter',
   },
+  'url': {
+    cellRenderer: UrlCellRender,
+    cellEditor: 'agTextCellEditor',
+    filter: 'agTextColumnFilter',
+  },
   'tags': {
     cellRenderer: TagCellRender,
-    cellEditor: 'agTextCellEditor',
+    cellEditor: MultiSelectEditor,
     filter: 'agTextColumnFilter',
   },
   'textarea': {
@@ -113,7 +118,12 @@ export const columnTypes = {
   },
   'select': {
     cellRenderer: TextCellRender,
-    cellEditor: 'agSelectCellEditor',
+    cellEditor: SelectEditor,
+    filter: 'agTextColumnFilter',
+  },
+  'multiSelect': {
+    cellRenderer: TextCellRender,
+    cellEditor: MultiSelectEditor,
     filter: 'agTextColumnFilter',
   },
 }
@@ -342,16 +352,13 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
         newRow.push(row.data)
       })
       allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
-      // 刷新row
-      // this.setState({ rowData: newRow })
       this.api.refreshCells()
-      // 刷新单元格
 
-      // this.api.refreshCells({
-      //   rowNodes: [this.api.getRowNode(String(rowIndex))],
-      //   columns: [colKey]
-      // })
       localStorage.setItem('focusedRow', `${colKey},${rowIndex}`)
+    }
+    // 更新select中的候选项
+    if (event.colDef.type == 'multiSelect' || event.colDef.type == 'select' || event.colDef.type == 'tags') {
+      this.setState({ columnDefs: this.api.getColumnDefs() })
     }
   }
 

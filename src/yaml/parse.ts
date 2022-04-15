@@ -1,39 +1,9 @@
-import { ColDef, Grid, GridApi } from "ag-grid-community";
+import { ColDef, GridApi } from "ag-grid-community";
 import t from "i18n";
-import { App, Notice, Plugin } from "obsidian";
+import { App, Notice } from "obsidian";
 import { MDIO, Search } from "./md";
-import { DateEditor, InlinkEditor, NumberEditor, TimeEditor } from "components/CustomCellEditor";
-import { ImgCellRender, InLinkCellRender, TagCellRender, TodoCellRender } from "components/CustomCellRender";
 import AgtablePlugin from "main";
 import DataGrid from "components/DataGrid";
-import CustomHeader from "components/CustomHeader";
-
-var hiddenPropInTable = ""
-
-export const admittedTypeCellRender: Record<string, any> = {
-    "text": "undefined",
-    "number": "undefined",
-    "date": "undefined",
-    "time": "undefined",
-    "checkbox": TodoCellRender,
-    "img": ImgCellRender,
-    "tags": TagCellRender,
-    "textarea": "undefined",
-    "inLink": InLinkCellRender,
-    "select": "undefined",
-}
-export const admittedTypeCellEditor: Record<string, any> = {
-    "text": "agTextCellEditor",
-    "number": NumberEditor,
-    "date": DateEditor,
-    "time": TimeEditor,
-    "checkbox": "agTextCellEditor",
-    "img": "agTextCellEditor",
-    "tags": "agTextCellEditor",
-    "textarea": "agLargeTextCellEditor",
-    "inLink": InlinkEditor,
-    "select": "agSelectCellEditor",
-}
 
 
 export interface dbconfig {
@@ -166,10 +136,6 @@ export class DataJson {
         await this.initYamlCodeblockJson()
         var DBconfig = await this.grid.getDBconfig()
         const newColDefs = DBconfig.colDef.map((el: ColDef) => {
-            // el.cellEditor = admittedTypeCellEditor[String(el.type)]
-            // el.cellRenderer = admittedTypeCellRender[String(el.type)]
-            // el.editable = (el.type == "checkbox") ? false : true
-            // el.headerComponent = this.grid.state.isEditingHeaders ? CustomHeader : ""
             return el
         })
         return newColDefs
@@ -196,9 +162,6 @@ export class DataJson {
         // console.log("加载Col");
         var DBconfig = await this.grid.getDBconfig()
         const newColDefs = DBconfig.colDef.map((el: ColDef) => {
-            // el.cellEditor = admittedTypeCellEditor[String(el.type)]
-            // el.cellRenderer = admittedTypeCellRender[String(el.type)]
-            // el.editable = (el.type == "checkbox") ? false : true
             return el
         })
         api.setColumnDefs(newColDefs)
@@ -223,7 +186,7 @@ export class DataJson {
                 // console.log(item, col[item], typeof (col[item]))
                 if (needToSave.indexOf(item) != -1) {
                     if (item == "cellEditorParams") {
-                        if (col.type == "select") {
+                        if (col.type == "select" || col.type == "multiSelect" || col.type == "tags") {
                             newColDef[item] = {
                                 "values": col[item]["values"]
                             }

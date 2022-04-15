@@ -66,3 +66,46 @@ input.filterInput {
 h3.modalTitle:hover {
   color: cornflowerblue;
 }
+
+/* 单选多选样式 */
+div[class^="mySelect"] {
+  width: 250px;
+}
+
+div.mySelect-dark div[class$="control"] {
+  background-color: rgb(31, 29, 29);
+}
+
+div.mySelect-dark div[class$="menu"] div {
+  background-color: rgb(31, 29, 29);
+}
+
+div.mySelect-dark div[class$="multiValue"] {
+  background-color: rgb(34, 118, 197);
+}
+
+div.mySelect-dark div {
+  /* background-color: gray; */
+  color: white;
+}
+
+div.mySelect div[class$="control"] {
+  background-color: rgb(255, 255, 255);
+  /* color: white; */
+}
+
+div.mySelect div[class$="menu"] div {
+  background-color: rgb(255, 255, 255);
+}
+
+div.mySelect div[class$="multiValue"] {
+  background-color: rgb(186, 198, 209);
+}
+
+/* 连接网址只显示一行 */
+a.myUrl {
+  white-space: nowrap;
+  /* 文本不换行 */
+  overflow: hidden;
+  /* 内容会被修剪，并且超过设置宽度的内容是不可见的 */
+}

@@ -19,7 +19,8 @@
           "type": "text",
           "width": 200,
           "sort": null,
-          "sortIndex": null
+          "sortIndex": null,
+          "hide": true
         },
         {
           "colId": "海报",
@@ -28,7 +29,8 @@
           "type": "img",
           "width": 200,
           "sort": null,
-          "sortIndex": null
+          "sortIndex": null,
+          "hide": true
         },
         {
           "colId": "评分",
@@ -41,22 +43,30 @@
           "hide": true
         },
         {
+          "cellEditorParams": {
+            "values": [
+              "认识",
+              "test"
+            ]
+          },
           "colId": "一天8杯水",
           "field": "一天8杯水",
           "headerName": "一天8杯水",
-          "type": "text",
+          "type": "multiSelect",
           "width": 200,
-          "sort": null,
-          "sortIndex": null
+          "sort": "asc",
+          "sortIndex": 0,
+          "hide": true
         },
         {
           "colId": "官方网站",
           "field": "官方网站",
           "headerName": "官方网站",
-          "type": "text",
-          "width": 200,
+          "type": "url",
+          "width": 186,
           "sort": null,
-          "sortIndex": null
+          "sortIndex": null,
+          "hide": true
         },
         {
           "colId": "已看完",
@@ -65,7 +75,8 @@
           "type": "date",
           "width": 264,
           "sort": null,
-          "sortIndex": null
+          "sortIndex": null,
+          "hide": true
         },
         {
           "colId": "banner",
@@ -201,8 +212,8 @@
           "colId": "tag",
           "field": "tag",
           "headerName": "tag",
-          "type": "text",
-          "width": 200,
+          "type": "url",
+          "width": 186,
           "sort": null,
           "sortIndex": null
         }
@@ -245,10 +256,33 @@
           "sortIndex": null
         },
         {
+          "cellEditorParams": {
+            "values": [
+              "1",
+              "2",
+              "3"
+            ]
+          },
           "colId": "官方网站",
           "field": "官方网站",
           "headerName": "官方网站",
-          "type": "text",
+          "type": "multiSelect",
+          "width": 200,
+          "sort": "desc",
+          "sortIndex": 0
+        },
+        {
+          "cellEditorParams": {
+            "values": [
+              "1",
+              "2",
+              "3"
+            ]
+          },
+          "colId": "已看完",
+          "field": "已看完",
+          "headerName": "已看完",
+          "type": "select",
           "width": 200,
           "sort": null,
           "sortIndex": null
@@ -257,25 +291,15 @@
           "colId": "一天8杯水",
           "field": "一天8杯水",
           "headerName": "一天8杯水",
-          "type": "textarea",
+          "type": "time",
           "width": 200,
-          "sort": "desc",
-          "sortIndex": 0
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "海报",
           "field": "海报",
           "headerName": "海报",
-          "type": "text",
-          "width": 200,
-          "hide": true,
-          "sort": null,
-          "sortIndex": null
-        },
-        {
-          "colId": "已看完",
-          "field": "已看完",
-          "headerName": "已看完",
           "type": "text",
           "width": 200,
           "hide": true,

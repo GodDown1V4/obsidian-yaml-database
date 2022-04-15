@@ -2,39 +2,10 @@ import React from 'react'
 import { ColDef, IHeaderParams } from 'ag-grid-community'
 import { apiVersion, App, Menu, Notice, Point } from 'obsidian'
 import t from 'i18n'
-import { dbconfig, admittedTypeCellEditor, admittedTypeCellRender, DataJson } from 'yaml/parse'
+import { DataJson } from 'yaml/parse'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from 'yaml/md'
 import { EditPropertyMolda } from './OperateModal'
-import AgtablePlugin from 'main'
-import DataGrid, { columnTypes } from './DataGrid'
-
-
-// 允许的属性类型，若不满足则设为默认类型text
-export const admittedType = [
-  "text",
-  "number",
-  "date",
-  "time",
-  "checkbox",
-  "img",
-  "tags",
-  "textarea",
-  "inLink",
-  "select",
-]
-
-const admittedTypeFilter = {
-  "text": "agTextColumnFilter",
-  "number": "agNumberColumnFilter",
-  "date": "agDateColumnFilter",
-  "time": "agTextColumnFilter",
-  "checkbox": "agTextColumnFilter",
-  "img": "agTextColumnFilter",
-  "tags": "agTextColumnFilter",
-  "textarea": "agTextColumnFilter",
-  "inLink": "agTextColumnFilter",
-  "select": "agTextColumnFilter",
-}
+import DataGrid from './DataGrid'
 
 interface Props extends IHeaderParams {
   grid: DataGrid

@@ -60,4 +60,5 @@ export default {
   textarea: "文本框",
   inLink: "内部链接",
   select: "单选",
+  multiSelect: "多选"
 }

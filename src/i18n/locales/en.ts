@@ -59,4 +59,5 @@ export default {
   textarea: "LargeText",
   inLink: "Internal Link",
   select: "Select",
+  multiSelect: "Multiselect"
 }

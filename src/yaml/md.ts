@@ -364,54 +364,6 @@ export class MDIO {
             }
         }
     }
-    // 危！！删除当前文档的整个yaml
-    delTheWholeYaml() {
-        if (this.hasYaml()) {
-            var canBeDeleted = true
-            for (var propertyName of this.getPropertiesName()) {
-                if (bannedProp.split("\n").indexOf(propertyName) != -1) {
-                    canBeDeleted = false
-                    console.log(`${this.path} 中包含禁止删除和修改的属性:${propertyName}, 所以无法对当前文档进行删除整个YAML的操作。`)
-                    break;
-                }
-            }
-            // 如果不包含重要属性就可以删除
-            if (canBeDeleted) {
-                var cache = this.app.metadataCache.getCache(this.path)
-                var startLine = cache["sections"][0]["position"]["start"]["line"];
-                var endLine = cache["sections"][0]["position"]["end"]["line"];
-                this.app.vault.read(this.getTFile()).then(oldContent => {
-                    // 找到delProperty的行号
-                    var oldContentList = oldContent.split("\n");
-                    // 删除该属性
-                    oldContentList.splice(startLine, endLine - startLine + 1);
-                    var newContent = "";
-                    for (var line of oldContentList) {
-                        newContent = newContent + line + "\n";
-                    }
-                    // 写入
-                    this.write(newContent)
-                });
-            }
-        }
-    }
-    // 清除值为空的属性
-    clearEmptyProps() {
-        if (this.hasYaml()) {
-            for (var propertyName of this.getPropertiesName()) {
-                if (!this.getPropertyValue(propertyName)) {
-                    // 空值属性
-                    this.delProperty(propertyName)  // 删除函数会检测是否为重要属性
-                }
-            }
-            // 清除完空值属性后若当前文档中没有属性，则会删除yaml
-            setTimeout(() => {
-                if (!this.getPropertiesName().length) {
-                    this.delTheWholeYaml()
-                }
-            }, 100)
-        }
-    }
     /**
      * ================================================================
      * tag常用函数

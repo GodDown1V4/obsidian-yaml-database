@@ -82,29 +82,31 @@ export class TodoCellRender extends Component<Props, State> {
   render() {
 
     return (
-      <input
-        type="checkbox"
-        checked={this.state.cellValue}
-        onChange={() => {
-          const thisColumn = this.props.column.getColId()
-          const data = this.props.data
-          this.setState({ cellValue: (this.state.cellValue ? false : true) })
-          var md = new MDIO(this.props.app, data["yamleditFirstFileColumn"])
+      <p>
+        <input
+          type="checkbox"
+          checked={this.state.cellValue}
+          onChange={() => {
+            const thisColumn = this.props.column.getColId()
+            const data = this.props.data
+            this.setState({ cellValue: (this.state.cellValue ? false : true) })
+            var md = new MDIO(this.props.app, data["yamleditFirstFileColumn"])
 
-          oneOperationYamlChangeHistory.length = 0
-          // 有该属性则修改值
-          if (md.hasProperty(thisColumn)) {
-            md.updatePropertyValue(thisColumn, String(!this.state.cellValue))
-          }
-          // 没有该属性则新建该属性并赋值
-          else {
-            md.addProperty(thisColumn, String(!this.state.cellValue))
-          }
-          allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
-        }}
-      >
+            oneOperationYamlChangeHistory.length = 0
+            // 有该属性则修改值
+            if (md.hasProperty(thisColumn)) {
+              md.updatePropertyValue(thisColumn, String(!this.state.cellValue))
+            }
+            // 没有该属性则新建该属性并赋值
+            else {
+              md.addProperty(thisColumn, String(!this.state.cellValue))
+            }
+            allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
+          }}
+        >
 
-      </input>
+        </input>
+      </p>
     )
   }
 }
@@ -140,6 +142,40 @@ export class ImgCellRender extends Component<Props, State> {
   }
 }
 
+export class UrlCellRender extends Component<Props, State> {
+
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      cellValue: ImgCellRender.getValueToDisplay(props.value)
+    }
+  }
+
+  // update cellValue when the cell's props are updated
+  static getDerivedStateFromProps(nextProps: any) {
+    return {
+      cellValue: ImgCellRender.getValueToDisplay(nextProps)
+    };
+  }
+
+  static getValueToDisplay(params: any) {
+    return params.valueFormatted ? params.valueFormatted : params.value;
+  }
+
+  render() {
+
+    return (
+      <p>
+        <a
+          className='myUrl'
+          href={this.state.cellValue}
+        >
+          {this.state.cellValue}
+        </a>
+      </p>
+    )
+  }
+}
 
 export class TagCellRender extends Component<Props, State> {
 
@@ -163,7 +199,7 @@ export class TagCellRender extends Component<Props, State> {
 
   render() {
     return (
-      <>
+      <p>
         {
           this.state.cellValue.split(",").map((tag: string) => {
             if (tag) {
@@ -175,7 +211,7 @@ export class TagCellRender extends Component<Props, State> {
             }
           })
         }
-      </>
+      </p>
     )
   }
 }
@@ -202,15 +238,17 @@ export class InLinkCellRender extends Component<Props, State> {
 
   render() {
     return (
-      <a
-        className="internal-link"
-        data-href={this.state.cellValue}
-        href={this.state.cellValue}
-        target="_blank"
-        rel="noopener"
-      >
-        {this.state.cellValue.split("/").pop().replace(".md", "")}
-      </a>
+      <p>
+        <a
+          className="internal-link"
+          data-href={this.state.cellValue}
+          href={this.state.cellValue}
+          target="_blank"
+          rel="noopener"
+        >
+          {this.state.cellValue.split("/").pop().replace(".md", "")}
+        </a>
+      </p>
     )
   }
 }

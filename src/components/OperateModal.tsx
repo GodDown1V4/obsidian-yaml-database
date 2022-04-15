@@ -2,17 +2,9 @@ import { ColDef, GridApi, ICellEditorParams } from 'ag-grid-community'
 import { App, Modal, ToggleComponent, Notice, DropdownComponent, SearchComponent, ButtonComponent } from 'obsidian'
 import t from 'i18n'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from 'yaml/md'
-import { admittedType } from './CustomHeader'
 import { DataJson } from 'yaml/parse'
 import AgtablePlugin from 'main'
 import DataGrid, { columnTypes } from './DataGrid'
-
-interface Props extends ICellEditorParams {
-    app: App
-    plugin: AgtablePlugin
-    columnDefs: ColDef[]
-    rowData: Array<{ [key: string]: string }>
-}
 
 // export class 
 /**
@@ -300,6 +292,10 @@ export class EditPropertyMolda extends Modal {
         // 添加dropdown
         const dropdown = new DropdownComponent(TypeDiv)
         dropdown.addOption(thisType, t(thisType))
+        var admittedType = new Array()
+        for (var item in columnTypes) {
+            admittedType.push(item)
+        }
         admittedType.map((T) => {
             if (T != thisType) {
                 dropdown.addOption(T, t(T))
@@ -314,6 +310,22 @@ export class EditPropertyMolda extends Modal {
             // console.log(dropdown.getValue());
             typeConfigDiv.innerHTML = ""
             switch (dropdown.getValue()) {
+                case "tags": {
+                    typeConfigDiv.createEl("br")
+                    typeConfigDiv.innerHTML = t("typeConfig")
+                    typeConfigDiv.createEl("br")
+                    const textarea = typeConfigDiv.createEl("textarea")
+                    textarea.placeholder = t("selectOptionsIntro")
+                    columns.map((col: ColDef) => {
+                        if (col.colId == thisColumn && col.cellEditorParams["values"]) {
+                            textarea.defaultValue = col.cellEditorParams["values"].join("\n")
+                            typeConfigValue = textarea.value
+                        }
+                    })
+                    textarea.oninput = function () {
+                        typeConfigValue = textarea.value
+                    }
+                }; break;
                 case "select": {
                     typeConfigDiv.createEl("br")
                     typeConfigDiv.innerHTML = t("typeConfig")
@@ -330,20 +342,22 @@ export class EditPropertyMolda extends Modal {
                         typeConfigValue = textarea.value
                     }
                 }; break;
-                // TODO 多选
-                // case "multi-select": {
-                //     const textarea = typeConfigDiv.createEl("textarea")
-                //     textarea.placeholder = t("selectOptionsIntro")
-                //     columns.map((col: ColDef) => {
-                //         if (col.colId == thisColumn && col.cellEditorParams["values"]) {
-                //             textarea.defaultValue = col.cellEditorParams["values"].join("\n")
-                //             typeConfigValue = textarea.value
-                //         }
-                //     })
-                //     textarea.oninput = function () {
-                //         typeConfigValue = textarea.value
-                //     }
-                // }; break;
+                case "multiSelect": {
+                    typeConfigDiv.createEl("br")
+                    typeConfigDiv.innerHTML = t("typeConfig")
+                    typeConfigDiv.createEl("br")
+                    const textarea = typeConfigDiv.createEl("textarea")
+                    textarea.placeholder = t("selectOptionsIntro")
+                    columns.map((col: ColDef) => {
+                        if (col.colId == thisColumn && col.cellEditorParams["values"]) {
+                            textarea.defaultValue = col.cellEditorParams["values"].join("\n")
+                            typeConfigValue = textarea.value
+                        }
+                    })
+                    textarea.oninput = function () {
+                        typeConfigValue = textarea.value
+                    }
+                }; break;
                 default: break;
             }
         }
@@ -364,7 +378,7 @@ export class EditPropertyMolda extends Modal {
             const newColums = columns.map((col: ColDef) => {
                 if (col.colId == thisColumn) {
                     col.type = type
-                    if (type == "select") {
+                    if (type == "select" || type == "multiSelect" || type == "tags") {
                         col.cellEditorParams = {
                             "values": typeConfigValue.split("\n")
                         }
