@@ -244,7 +244,20 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
       this.api.setColumnDefs(newColumns)
       this.dataJson.saveColDef(this.api)
     }
+  }
 
+  pinTopUntitledRow() {
+    // 对rows进行处理，将未命名的新建文档放在前面
+    var newRows = new Array()
+    this.api.forEachNode((row) => {
+      const fileName = row.data["yamleditFirstFileColumn"].split("/").pop().replace(".md", '')
+      const untitledReg = new RegExp(`${t("untitled")}_(1|2\\d{3}-(([1-9])|(1[0-2]))-(([1-9])|([1-2][0-9])|(3([0|1]))))(_(\\d{2}|\\d{1})-(\\d{2}|\\d{1})-(\\d{2}|\\d{1}))`)
+
+      if (untitledReg.test(fileName)) {
+        newRows.push(row.data)
+      }
+    })
+    this.api.setPinnedTopRowData(newRows)
   }
 
   async getDBconfig() {
@@ -283,21 +296,12 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
           else {
             await this.app.vault.trash(this.app.vault.getAbstractFileByPath(path), true);
           }
-          // var row
-          var newRows = new Array()
-          this.api.forEachNode((rowNode, index) => {
-            if (index != params.rowIndex) {
-              newRows.push(rowNode.data)
-            }
+          console.log(params);
 
-          })
           this.api.applyTransaction({
             remove: [params.data]
           })
-
-          // this.setState({
-          //   rowData: newRows
-          // })
+          this.pinTopUntitledRow()
         })
     })
     menu.showAtPosition(params.event as Point)
@@ -306,14 +310,18 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
   async onCellEditingStopped(event: CellEditingStoppedEvent) {
 
     if (event.oldValue != event.newValue) {
-
       const rowIndex = event.rowIndex // 行索引
+      // 不能使用行索引，必须使用event.data["yamleditFirstFileColumn"]
+      // const filePath = event.data["yamleditFirstFileColumn"]
       const colKey = event.column.getColId()  // 修改的列ID
 
       // 获取当前选中行的文件路径
-      const selectedRowFilePath = this.selectedRows.map((row) => {
-        return row["yamleditFirstFileColumn"]
-      })
+      var selectedRowFilePath: string[] = [event.data["yamleditFirstFileColumn"]]
+      if (event.rowPinned != "top") { // 不是置顶行就有可能是多选
+        selectedRowFilePath = this.selectedRows.map((row) => {
+          return row["yamleditFirstFileColumn"]
+        })
+      }
 
       // 处理新赋值的内容中的换行符
       var newValue = String(event.newValue).replace(/\n/g, '<br/>')
@@ -321,35 +329,39 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
         newValue = String(event.oldValue).replace(/\n/g, '<br/>')
       }
 
-      var newRow = new Array()
       // 处理行数据，对所有选中行进行操作
       oneOperationYamlChangeHistory.length = 0
-      this.api.forEachNode((row) => {
-        // 文件重命名不支持批量操作
-        if (colKey == "yamleditFirstFileColumn") {
-          if (row.rowIndex == rowIndex) {
-            row.data[colKey] = newValue
-          }
-        }
-        // 属性赋值支持批量操作
-        else {
-          // 获取文档路径
-          const thisRowPath = row.data["yamleditFirstFileColumn"]
-          // 对所有选中行进行处理
-          if (selectedRowFilePath.indexOf(thisRowPath) != -1) {
-            row.data[colKey] = newValue
-            // 文档重命名在自定义inLinkCellEditor中进行
-            const md = new MDIO(this.app, thisRowPath)
-            if (md.hasProperty(colKey)) {
-              md.tableUpdateProperty(colKey, row.data[colKey])
-            }
-            else {
-              md.addProperty(colKey, row.data[colKey])
-            }
-          }
-        }
 
-        newRow.push(row.data)
+      selectedRowFilePath.map((filePath: string) => {
+
+      })
+
+      this.api.forEachNode((row) => {
+        // 获取文档路径
+        const thisRowPath = row.data["yamleditFirstFileColumn"]
+        // 对所有选中行进行处理
+        if (selectedRowFilePath.indexOf(thisRowPath) != -1) {
+          // 文件重命名在cellEditor进行
+          if (colKey == "yamleditFirstFileColumn") {
+            if (selectedRowFilePath[0] == thisRowPath) {
+              row.data[colKey] = newValue
+            }
+          }
+          else {
+            // 对所有选中行进行处理
+            if (selectedRowFilePath.indexOf(thisRowPath) != -1) {
+              row.data[colKey] = newValue
+              // 文档重命名在自定义inLinkCellEditor中进行
+              const md = new MDIO(this.app, thisRowPath)
+              if (md.hasProperty(colKey)) {
+                md.tableUpdateProperty(colKey, row.data[colKey])
+              }
+              else {
+                md.addProperty(colKey, row.data[colKey])
+              }
+            }
+          }
+        }
       })
       allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
       this.api.refreshCells()
@@ -359,6 +371,10 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
     // 更新select中的候选项
     if (event.colDef.type == 'multiSelect' || event.colDef.type == 'select' || event.colDef.type == 'tags') {
       this.setState({ columnDefs: this.api.getColumnDefs() })
+    }
+    // 取消对改名后的未命名文件的置顶
+    else if (event.colDef.colId == 'yamleditFirstFileColumn') {
+      this.pinTopUntitledRow()
     }
   }
 
@@ -385,13 +401,14 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
     this.dataJson = new DataJson(this)
 
     // 初始化行列
+    // console.log("从JSON读取列, 从文件读取行");
     const column = await this.dataJson.getColumsFromDataJson()
     const row = await this.dataJson.getRowsFromDataFiles()
-    // console.log("从JSON读取列, 从文件读取行");
     this.setState({
       columnDefs: column,
       rowData: row
     })
+    this.pinTopUntitledRow()
     // filter初始化
     this.dataJson.loadFliterModal(event.api)
 
@@ -475,10 +492,11 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
         }
       }
     }
-    this.app.vault.create(newFilePath, content)
+    await this.app.vault.create(newFilePath, content)
     this.api.applyTransaction({
       add: [Object.assign({}, ...arow)]
     })
+    this.pinTopUntitledRow()
     // this.app.metadataCache.getFileCache(createdFile)
   }
 
@@ -505,6 +523,7 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
       columnDefs: await block.getColumsFromDataJson(),
       rowData: await block.getRowsFromDataFiles()
     })
+    this.pinTopUntitledRow()
   }
 
 

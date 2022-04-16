@@ -35,7 +35,7 @@ export class TextCellRender extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      cellValue: TextCellRender.getValueToDisplay(props.value)
+      cellValue: TextCellRender.getValueToDisplay(props)
     }
   }
 
@@ -51,12 +51,13 @@ export class TextCellRender extends Component<Props, State> {
   }
 
   render() {
-    // console.log(this.state.cellValue);
-    // var lines: string[] = 
-
+    var cellValue = this.state.cellValue
+    if (typeof (cellValue) == "undefined") {
+      cellValue = ""
+    }
     return (
       <>
-        {this.state.cellValue.split("\n").map((line: string) => {
+        {cellValue.split("\n").map((line: string) => {
           return <p>{line}</p>
         })}
       </>
@@ -116,7 +117,7 @@ export class ImgCellRender extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      cellValue: ImgCellRender.getValueToDisplay(props.value)
+      cellValue: ImgCellRender.getValueToDisplay(props)
     }
   }
 
@@ -147,7 +148,7 @@ export class UrlCellRender extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      cellValue: ImgCellRender.getValueToDisplay(props.value)
+      cellValue: ImgCellRender.getValueToDisplay(props)
     }
   }
 
@@ -182,7 +183,7 @@ export class TagCellRender extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      cellValue: TagCellRender.getValueToDisplay(props.value)
+      cellValue: TagCellRender.getValueToDisplay(props)
     }
   }
 
@@ -221,7 +222,7 @@ export class InLinkCellRender extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      cellValue: InLinkCellRender.getValueToDisplay(props.value)
+      cellValue: InLinkCellRender.getValueToDisplay(props)
     }
   }
 
