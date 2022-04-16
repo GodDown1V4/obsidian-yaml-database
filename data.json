@@ -212,8 +212,8 @@
           "colId": "tag",
           "field": "tag",
           "headerName": "tag",
-          "type": "url",
-          "width": 202,
+          "type": "text",
+          "width": 200,
           "sort": null,
           "sortIndex": null
         }
@@ -460,6 +460,20 @@
           "field": "yamleditFirstFileColumn",
           "headerName": "文件",
           "type": "inLink",
+          "width": 200,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "cellEditorParams": {
+            "values": [
+              ""
+            ]
+          },
+          "colId": "tags",
+          "field": "tags",
+          "headerName": "tags",
+          "type": "tags",
           "width": 200,
           "sort": null,
           "sortIndex": null

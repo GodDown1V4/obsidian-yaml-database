@@ -199,10 +199,14 @@ export class TagCellRender extends Component<Props, State> {
   }
 
   render() {
+    var cellValue = this.state.cellValue
+    if (typeof (cellValue) == "undefined") {
+      cellValue = ""
+    }
     return (
       <p>
         {
-          this.state.cellValue.split(",").map((tag: string) => {
+          cellValue.split(",").map((tag: string) => {
             if (tag) {
               return (
                 <>
@@ -238,6 +242,10 @@ export class InLinkCellRender extends Component<Props, State> {
   }
 
   render() {
+    var cellValue = this.state.cellValue
+    if (typeof (cellValue) == "undefined") {
+      cellValue = ""
+    }
     return (
       <p>
         <a
@@ -247,7 +255,7 @@ export class InLinkCellRender extends Component<Props, State> {
           target="_blank"
           rel="noopener"
         >
-          {this.state.cellValue.split("/").pop().replace(".md", "")}
+          {cellValue.split("/").pop().replace(".md", "")}
         </a>
       </p>
     )
