@@ -159,7 +159,7 @@ export default class CustomHeader extends React.Component<Props, State> {
       if (hideColumns.indexOf(propName) == -1) {  // 添加新的属性
         oneOperationYamlChangeHistory.length = 0
         const DBconfig = await this.props.grid.getDBconfig()
-        new Search(this.props.grid.app).getTAbstractFilesOfAFolder(DBconfig.folder).map(async (file) => {
+        new Search(this.props.grid.app).getTFilesOfAFolder(DBconfig.folder).map(async (file) => {
           await new MDIO(this.props.grid.app, file.path).addProperty(propName)
         })
         allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
@@ -207,7 +207,7 @@ export default class CustomHeader extends React.Component<Props, State> {
     const column = this.props.api.getColumnDefs()
     oneOperationYamlChangeHistory.length = 0
     const DBconfig = await this.props.grid.getDBconfig()
-    new Search(this.props.grid.app).getTAbstractFilesOfAFolder(DBconfig.folder).map(async (file) => {
+    new Search(this.props.grid.app).getTFilesOfAFolder(DBconfig.folder).map(async (file) => {
       await new MDIO(this.props.grid.app, file.path).updatePropertyName(thisColumn, event.target.value)
     })
     allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))

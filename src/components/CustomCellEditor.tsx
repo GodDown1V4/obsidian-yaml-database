@@ -236,10 +236,10 @@ export class InlinkEditor extends React.Component<Props, State> {
         // 检查是否重名
         var path = this.props.value.split("/")
         path.pop()
-        const filesName = new Search(this.props.app).getTAbstractFilesOfAFolder(path.join("/")).map((file) => {
+        const filesNames = new Search(this.props.app).getTFilesOfAFolder(path.join("/")).map((file) => {
             return file.name.replace(".md", "")
         })
-        if (filesName.indexOf(Name) != -1 && Name != this.props.value.split("/").pop().replace(".md", "")) {
+        if (filesNames.indexOf(Name) != -1 && Name != this.props.value.split("/").pop().replace(".md", "")) {
             new Notice(t("repeatedName"))
             return false
         }

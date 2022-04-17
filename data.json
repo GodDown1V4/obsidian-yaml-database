@@ -209,10 +209,13 @@
           "sortIndex": 0
         },
         {
-          "colId": "tag",
-          "field": "tag",
-          "headerName": "tag",
-          "type": "text",
+          "cellEditorParams": {
+            "values": "return prop(评分)"
+          },
+          "colId": "ceshi",
+          "field": "ceshi",
+          "headerName": "ceshi",
+          "type": "formula",
           "width": 200,
           "sort": null,
           "sortIndex": null
@@ -465,51 +468,9 @@
           "sortIndex": null
         },
         {
-          "cellEditorParams": {
-            "values": [
-              ""
-            ]
-          },
-          "colId": "tags",
-          "field": "tags",
-          "headerName": "tags",
-          "type": "tags",
-          "width": 200,
-          "sort": null,
-          "sortIndex": null
-        },
-        {
-          "colId": "测试",
-          "field": "测试",
-          "headerName": "测试",
-          "type": "text",
-          "width": 200,
-          "sort": null,
-          "sortIndex": null
-        },
-        {
-          "colId": "当文档",
-          "field": "当文档",
-          "headerName": "当文档",
-          "type": "text",
-          "width": 200,
-          "sort": null,
-          "sortIndex": null
-        },
-        {
-          "colId": "234",
-          "field": "234",
-          "headerName": "234",
-          "type": "text",
-          "width": 200,
-          "hide": true,
-          "sort": null,
-          "sortIndex": null
-        },
-        {
-          "colId": "123",
-          "field": "123",
-          "headerName": "123",
+          "colId": "parent",
+          "field": "parent",
+          "headerName": "parent",
           "type": "text",
           "width": 200,
           "hide": true,

@@ -25,6 +25,8 @@ export default {
   selectYamlProperty: 'Select Yaml Property',
   plsInput: 'Please Input',
   plsSelect: "Please Select",
+  wrongFormula: "Wrong Formula, pls re-edit",
+  existedColsName: 'Existed Columns Names',
   // 表头操作区域
   createNewFile: "New",
   untitled: "Untitled",
@@ -59,5 +61,6 @@ export default {
   textarea: "LargeText",
   inLink: "Internal Link",
   select: "Select",
-  multiSelect: "Multiselect"
+  multiSelect: "Multiselect",
+  formula: "Formula"
 }

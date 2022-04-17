@@ -3,12 +3,12 @@ import { App, Plugin } from 'obsidian'
 import DataGrid from 'components/DataGrid'
 import ErrorBoundary from 'components/ErrorBoundary'
 import '../styles/TableView.css'
-import AgtablePlugin from 'main'
+import YamlDatabasePlugin from 'main'
 import { dbconfig } from 'yaml/parse'
 
 interface Props {
   databaseID: string
-  plugin: AgtablePlugin
+  plugin: YamlDatabasePlugin
   paginationSize: number
 }
 

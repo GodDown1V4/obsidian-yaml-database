@@ -26,6 +26,8 @@ export default {
   addNewColumn: '添加属性',
   plsInput: '请输入',
   plsSelect: "请选择",
+  wrongFormula: "公式错误, 请重新编写",
+  existedColsName: "当前表格的属性名",
   // 表头操作区域
   createNewFile: "新建",
   untitled: "未命名",
@@ -60,5 +62,6 @@ export default {
   textarea: "文本框",
   inLink: "内部链接",
   select: "单选",
-  multiSelect: "多选"
+  multiSelect: "多选",
+  formula: "公式"
 }

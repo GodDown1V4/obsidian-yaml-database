@@ -1,10 +1,10 @@
-import { ColDef, GridApi, ICellEditorParams } from 'ag-grid-community'
+import { ColDef, GridApi, ICellEditorParams, ValueGetterParams } from 'ag-grid-community'
 import { App, Modal, ToggleComponent, Notice, DropdownComponent, SearchComponent, ButtonComponent } from 'obsidian'
 import t from 'i18n'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from 'yaml/md'
 import { DataJson } from 'yaml/parse'
-import AgtablePlugin from 'main'
-import DataGrid, { columnTypes } from './DataGrid'
+import YamlDatabasePlugin from 'main'
+import DataGrid, { columnTypes, genFormulaValueGetter } from './DataGrid'
 
 // export class 
 /**
@@ -14,7 +14,7 @@ import DataGrid, { columnTypes } from './DataGrid'
 export class OperateMolda extends Modal {
     grid: DataGrid
     api: GridApi
-    plugin: AgtablePlugin
+    plugin: YamlDatabasePlugin
 
     constructor(grid: DataGrid) {
         super(grid.plugin.app)
@@ -257,7 +257,7 @@ export class OperateMolda extends Modal {
 
 export class EditPropertyMolda extends Modal {
     grid: DataGrid
-    plugin: AgtablePlugin
+    plugin: YamlDatabasePlugin
     api: GridApi
     propertyName: string
 
@@ -358,6 +358,47 @@ export class EditPropertyMolda extends Modal {
                         typeConfigValue = textarea.value
                     }
                 }; break;
+                case "formula": {
+                    typeConfigDiv.createEl("br")
+                    const colsName = superThis.api.getColumnDefs().map((col: ColDef) => {
+                        return col.colId
+                    })
+                    typeConfigDiv.innerHTML = `${t("typeConfig")}<br>${t("existedColsName")}: ${colsName.join(", ")}`
+                    typeConfigDiv.createEl("br")
+                    const textarea = typeConfigDiv.createEl("textarea", {
+                        attr: {
+                            class: "formula"
+                        }
+                    })
+                    textarea.placeholder = t("selectOptionsIntro")
+                    columns.map((col: ColDef) => {
+                        if (col.colId == thisColumn && col.cellEditorParams["values"]) {
+                            textarea.defaultValue = col.cellEditorParams["values"]
+                            typeConfigValue = textarea.value
+                        }
+                    })
+                    textarea.oninput = function () {
+                        try {
+                            const colsName = superThis.api.getColumnDefs().map((col: ColDef) => {
+                                return col.colId
+                            })
+                            // 替换值
+                            var value = textarea.value
+                            for (const colId of colsName) {
+                                const newReg = new RegExp(`prop\\(${colId}\\)`)
+                                value = value.replace(newReg, `''`)
+                            }
+                            new Function(value)()
+
+                            typeConfigValue = textarea.value
+                        }
+                        catch (err) {
+                            new Notice(t("wrongFormula"))
+                            console.log(err);
+                            typeConfigValue = ''
+                        }
+                    }
+                }; break;
                 default: break;
             }
         }
@@ -381,6 +422,34 @@ export class EditPropertyMolda extends Modal {
                     if (type == "select" || type == "multiSelect" || type == "tags") {
                         col.cellEditorParams = {
                             "values": typeConfigValue.split("\n")
+                        }
+                    }
+                    else if (type == "formula") {
+                        try {
+                            const getter = genFormulaValueGetter(superThis.api.getColumnDefs(), typeConfigValue)
+                            if (typeof (getter) == "string") {
+                                col.cellEditorParams = {
+                                    "values": ""
+                                }
+                                col.valueGetter = function () {
+                                    return getter
+                                }
+                            }
+                            else {
+                                col.cellEditorParams = {
+                                    "values": typeConfigValue
+                                }
+                                col.valueGetter = function (params: ValueGetterParams) {
+                                    return String(getter(params))
+                                }
+                            }
+                        }
+                        catch (err) {
+                            new Notice(t("wrongFormula"))
+                            console.log(err);
+                            col.cellEditorParams = {
+                                "values": ""
+                            }
                         }
                     }
                 }
@@ -410,7 +479,7 @@ export class EditPropertyMolda extends Modal {
             .onClick(async () => {
                 oneOperationYamlChangeHistory.length = 0
                 const DBconfig = await this.grid.getDBconfig()
-                new Search(this.app).getTAbstractFilesOfAFolder(DBconfig.folder).map(async (file) => {
+                new Search(this.app).getTFilesOfAFolder(DBconfig.folder).map(async (file) => {
                     await new MDIO(this.app, file.path).delProperty(thisColumn)
                 })
                 allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))

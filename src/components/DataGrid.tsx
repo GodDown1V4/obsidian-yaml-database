@@ -1,4 +1,4 @@
-import { App, Menu, Point } from 'obsidian'
+import { App, Menu, Point, TFile } from 'obsidian'
 import React, { EffectCallback, useEffect } from 'react'
 import { AgGridReact } from 'ag-grid-react'
 import 'ag-grid-community/dist/styles/ag-grid.css'
@@ -25,14 +25,14 @@ import { ImgCellRender, InLinkCellRender, TagCellRender, TextCellRender, TodoCel
 import { DataJson, dbconfig } from 'yaml/parse'
 import { OperateMolda } from './OperateModal'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from 'yaml/md'
-import AgtablePlugin from 'main'
+import YamlDatabasePlugin from 'main'
 import { DateEditor, InlinkEditor, NumberEditor, MultiSelectEditor, TimeEditor, SelectEditor } from './CustomCellEditor'
 
 
 
 interface Props {
   databaseID: string
-  plugin: AgtablePlugin
+  plugin: YamlDatabasePlugin
   paginationSize: number
 }
 
@@ -69,21 +69,25 @@ export const columnTypes = {
     cellRenderer: TextCellRender,
     cellEditor: 'agTextCellEditor',
     filter: 'agTextColumnFilter',
+    editable: true,
   },
   'number': {
     cellRenderer: TextCellRender,
     cellEditor: NumberEditor,
     filter: 'agNumberColumnFilter',
+    editable: true,
   },
   'date': {
     cellRenderer: TextCellRender,
     cellEditor: DateEditor,
     filter: 'agDateColumnFilter',
+    editable: true,
   },
   'time': {
     cellRenderer: TextCellRender,
     cellEditor: TimeEditor,
     filter: 'agTextColumnFilter',
+    editable: true,
   },
   'checkbox': {
     cellRenderer: TodoCellRender,
@@ -95,43 +99,89 @@ export const columnTypes = {
     cellRenderer: ImgCellRender,
     cellEditor: 'agTextCellEditor',
     filter: 'agTextColumnFilter',
+    editable: true,
   },
   'url': {
     cellRenderer: UrlCellRender,
     cellEditor: 'agTextCellEditor',
     filter: 'agTextColumnFilter',
+    editable: true,
   },
   'tags': {
     cellRenderer: TagCellRender,
     cellEditor: MultiSelectEditor,
     filter: 'agTextColumnFilter',
+    editable: true,
   },
   'textarea': {
     cellRenderer: TextCellRender,
     cellEditor: 'agLargeTextCellEditor',
     filter: 'agTextColumnFilter',
+    editable: true,
   },
   'inLink': {
     cellRenderer: InLinkCellRender,
     cellEditor: InlinkEditor,
     filter: 'agTextColumnFilter',
+    editable: true,
   },
   'select': {
     cellRenderer: TextCellRender,
     cellEditor: SelectEditor,
     filter: 'agTextColumnFilter',
+    editable: true,
   },
   'multiSelect': {
     cellRenderer: TextCellRender,
     cellEditor: MultiSelectEditor,
     filter: 'agTextColumnFilter',
+    editable: true,
+  },
+  'formula': {
+    cellRenderer: TextCellRender,
+    cellEditor: 'agTextCellEditor',
+    filter: 'agTextColumnFilter',
+    editable: false,
   },
 }
 
+// valueGetter 和 valueSetter
+export const defaultValueGetter = function (params: ValueGetterParams) {
+  const colId = params.column.getId()
+  let currentValue = params.data[colId]
+  while (/<br\/>/.test(currentValue)) {
+    currentValue = currentValue.replace('<br/>', '\n')
+  }
+  return currentValue
+}
 
+export const defaultValueSetter = function (params: ValueSetterParams) {
+  const colId = params.column.getId()
+  let currentValue = params.data[colId]
+  while (/\n/.test(currentValue)) {
+    currentValue = currentValue.replace('\n', '<br/>')
+  }
+  return currentValue
+}
+// 不是直接给formula列的，需要先处理下
+export const genFormulaValueGetter = function (columnDefs: ColDef[], codeStr: string) {
+  var value = codeStr
+  for (const col of columnDefs) {
+    const newReg = new RegExp(`prop\\(${col.colId}\\)`)
+    value = value.replace(newReg, `params.data.${col.colId}`)
+  }
+  if (value.indexOf('prop(') == -1) {
+    return new Function('params', value)
+  }
+  else {
+    return t("wrongFormula")
+  }
+}
+
+// 表格
 export default class DataGrid extends React.Component<Props, State, EffectCallback> {
   app: App
-  plugin: AgtablePlugin
+  plugin: YamlDatabasePlugin
   defaultColDef: { [key: string]: any }
   clickedRowIndex: string | null
   clickedColumn: string
@@ -182,22 +232,8 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
       headerComponentParams: {
         grid: this
       },
-      valueGetter: (params: ValueGetterParams) => {
-        const colId = params.column.getId()
-        let currentValue = params.data[colId]
-        while (/<br\/>/.test(currentValue)) {
-          currentValue = currentValue.replace('<br/>', '\n')
-        }
-        return currentValue
-      },
-      valueSetter: (params: ValueSetterParams) => {
-        const colId = params.column.getId()
-        let currentValue = params.data[colId]
-        while (/\n/.test(currentValue)) {
-          currentValue = currentValue.replace('\n', '<br/>')
-        }
-        return currentValue
-      },
+      valueGetter: defaultValueSetter,
+      valueSetter: defaultValueSetter,
       // cellEditor: 'agTextCellEditor',
       cellEditorParams: {
         app: this.plugin.app,
@@ -237,8 +273,24 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
         el.cellEditor = columnTypes[String(el.type)]["cellEditor"]
         el.cellRenderer = columnTypes[String(el.type)]["cellRenderer"]
         el.filter = columnTypes[String(el.type)]["filter"]
-        el.editable = String(el.type) == "checkbox" ? false : true
+        el.editable = columnTypes[String(el.type)]["editable"]
         el.headerComponent = this.state.isEditingHeaders ? CustomHeader : ""
+        if (el.type == "formula" && this.state.columnDefs && el.cellEditorParams["values"]) {
+          const getter = genFormulaValueGetter(this.state.columnDefs, el.cellEditorParams["values"])
+          if (typeof (getter) == "string") {
+            el.valueGetter = function () {
+              return getter
+            }
+          }
+          else {
+            el.valueGetter = function (params: ValueGetterParams) {
+              return String(getter(params))
+            }
+          }
+        }
+        else {
+          el.valueGetter = defaultValueGetter
+        }
         return el
       })
       this.api.setColumnDefs(newColumns)
@@ -354,7 +406,7 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
               // 文档重命名在自定义inLinkCellEditor中进行
               const md = new MDIO(this.app, thisRowPath)
               if (md.hasProperty(colKey)) {
-                md.tableUpdateProperty(colKey, row.data[colKey])
+                md.updateProperty(colKey, row.data[colKey])
               }
               else {
                 md.addProperty(colKey, row.data[colKey])
@@ -474,20 +526,18 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
       if (tabstractFile.hasOwnProperty("extension")) {
         if (tabstractFile["extension"] == "md") {
           // 读取文件
-          for (var file of this.app.vault.getMarkdownFiles()) {
-            if (file.path == DBconfig.templatePath) {
-              content = await this.app.vault.read(file)
-              // 获取当前文件的yaml以便为下面添加行使用
-              var md = new MDIO(this.app, tabstractFile.path)
-              arow = this.api.getColumnDefs().map((col: ColDef) => {
-                if (col.field == "yamleditFirstFileColumn") {
-                  return { [col.field]: newFilePath }
-                } else {
-                  return { [col.field]: md.getPropertyValue(col.field) }
-                }
-              })
-              break
-            }
+          if (tabstractFile instanceof TFile) {
+            // 获取模板内容
+            var md = new MDIO(this.app, tabstractFile.path)
+            content = await md.read()
+            // 获取当前文件的yaml以便为下面添加行使用
+            arow = this.api.getColumnDefs().map((col: ColDef) => {
+              if (col.field == "yamleditFirstFileColumn") {
+                return { [col.field]: newFilePath }
+              } else {
+                return { [col.field]: md.getPropertyValue(col.field) }
+              }
+            })
           }
         }
       }

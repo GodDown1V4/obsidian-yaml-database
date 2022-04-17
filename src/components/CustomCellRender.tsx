@@ -3,6 +3,7 @@ import React, { Component, createRef } from 'react'
 import { App, MarkdownRenderer } from 'obsidian'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory } from 'yaml/md'
 import { linkSync } from 'fs'
+import t from 'i18n'
 
 interface Props extends ICellRendererParams {
   app: App
@@ -96,7 +97,7 @@ export class TodoCellRender extends Component<Props, State> {
             oneOperationYamlChangeHistory.length = 0
             // 有该属性则修改值
             if (md.hasProperty(thisColumn)) {
-              md.updatePropertyValue(thisColumn, String(!this.state.cellValue))
+              md.updateProperty(thisColumn, String(!this.state.cellValue))
             }
             // 没有该属性则新建该属性并赋值
             else {

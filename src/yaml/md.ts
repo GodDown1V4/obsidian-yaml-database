@@ -2,8 +2,6 @@ import t from "i18n";
 import { App, FrontMatterCache, Notice, TAbstractFile, TFile } from "obsidian";
 // import { bannedProp, bannedFolder } from "main";
 
-var bannedFolder = ""
-var bannedProp = ""
 
 // 历史操作记录，从加载插件开始运行
 export class YamlChangeHistory {
@@ -21,7 +19,7 @@ export class YamlChangeHistory {
             case "add": await md.delProperty(this.info.propertyName); break;
             case "del": await md.addProperty(this.info.propertyName, this.info.otherParam); break;
             case "updateName": await md.updatePropertyName(this.info.propertyName, this.info.otherParam); break;
-            case "updateValue": await md.updatePropertyValue(this.info.propertyName, this.info.otherParam); break;
+            case "updateValue": await md.updateProperty(this.info.propertyName, this.info.otherParam); break;
             default: break;
         }
     }
@@ -55,12 +53,16 @@ export class MDIO {
     }
     // 方便的获取TFlie
     getTFile() {
-        for (var file of this.app.vault.getMarkdownFiles()) {
-            if (file.path == this.path) {
-                return file;
-            }
+        const abfile = this.app.vault.getAbstractFileByPath(this.path)
+        if (abfile instanceof TFile) {
+            return abfile;
         }
     }
+    async read(): Promise<string> {
+        const content = await this.app.vault.read(this.getTFile())
+        return content
+    }
+
     // 方便的写入
     async write(content: string) {
         await this.app.vault.modify(this.getTFile(), content)
@@ -175,7 +177,7 @@ export class MDIO {
                     operation: "add",
                     propertyName: newProperty
                 }))
-                var oldContent = await this.app.vault.read(this.getTFile())
+                const oldContent = await this.read()
                 var oldContentList = oldContent.split("\n");
 
                 // 添加新属性
@@ -197,13 +199,11 @@ export class MDIO {
                 operation: "add",
                 propertyName: newProperty
             }))
-            this.app.vault.read(this.getTFile()).then(oldContent => {
-                // 添加新属性
-                var newContent = `---\n${newProperty}: '${value.replace(/'/g, '"')}'\n---\n` + oldContent;
-
-                // 写入
-                this.write(newContent)
-            });
+            const oldContent = await this.read()
+            // 添加新属性
+            const newContent = `---\n${newProperty}: '${value.replace(/'/g, '"')}'\n---\n` + oldContent;
+            // 写入
+            await this.write(newContent)
         }
     }
     // 为当前文档更新属性名
@@ -211,31 +211,28 @@ export class MDIO {
         if (this.hasYaml()) {
             // 是否存在该属性？且新属性名是否不存在？
             if (this.hasProperty(oldProperty) && !this.hasProperty(newProperty)) {
-                // 检测是否为禁止操作项？
-                if (bannedProp.split("\n").indexOf(oldProperty) == -1) {   // 不是禁止操作项
-                    var oldContent = await this.app.vault.read(this.getTFile())
-                    if (oldContent.indexOf(`\n${oldProperty}: `)) {
-                        var newContent = oldContent.replace(`\n${oldProperty}:`, `\n${newProperty}:`)
-                    }
-                    else {
-                        var newContent = oldContent.replace(`\n${oldProperty}:`, `\n${newProperty}: `)
-                    }
-
-                    // 写入
-                    await this.write(newContent)
-                    oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, {
-                        path: this.path,
-                        operation: "updateName",
-                        propertyName: newProperty,
-                        otherParam: oldProperty
-                    }))
+                var oldContent = await this.read()
+                if (oldContent.indexOf(`\n${oldProperty}: `)) {
+                    var newContent = oldContent.replace(`\n${oldProperty}:`, `\n${newProperty}:`)
                 }
+                else {
+                    var newContent = oldContent.replace(`\n${oldProperty}:`, `\n${newProperty}: `)
+                }
+
+                // 写入
+                await this.write(newContent)
+                oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, {
+                    path: this.path,
+                    operation: "updateName",
+                    propertyName: newProperty,
+                    otherParam: oldProperty
+                }))
             }
         }
     }
 
-    // 表格更改属性值
-    tableUpdateProperty(Property: string, newValue: string) {
+    // 为当前文档更新属性值
+    async updateProperty(Property: string, newValue: string) {
         if (this.hasYaml()) {
             // 是否存在该属性？
             if (this.hasProperty(Property)) {
@@ -245,78 +242,33 @@ export class MDIO {
                     propertyName: Property,
                     otherParam: this.getPropertyValue(Property)
                 }))
-                this.app.vault.read(this.getTFile()).then(oldContent => {
-                    // 找到Property的行号
-                    var oldContentList = oldContent.split("\n");
-                    var lineNo = 0;
-                    var startLine = 0;
-                    var endLine = 0;
-                    for (var line of oldContentList) {
-                        lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
-                        // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
-                        if (line.startsWith(Property + ":") && !startLine) {
-                            startLine = lineNo
-                        }
-                        else if ((line.search(/^.*?:/g) != -1 || line.search('---') != -1) && startLine) {
-                            endLine = lineNo
-                            break;
-                        }
+                const oldContent = await this.read()
+                // 找到Property的行号
+                var oldContentList = oldContent.split("\n");
+                var lineNo = 0;
+                var startLine = 0;
+                var endLine = 0;
+                for (var line of oldContentList) {
+                    lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
+                    // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
+                    if (line.startsWith(Property + ":") && !startLine) {
+                        startLine = lineNo
                     }
-
-                    // 修改属性值
-                    oldContentList.splice(startLine - 1, endLine - startLine, `${Property}: '${newValue.replace(/'/g, '"')}'`)
-                    var newContent = "";
-                    for (var line of oldContentList) {
-                        newContent = newContent + line + "\n";
+                    else if ((line.search(/^.*?:/g) != -1 || line.search('---') != -1) && startLine) {
+                        endLine = lineNo
+                        break;
                     }
-
-                    // 写入
-                    this.write(newContent)
-                });
-            }
-        }
-    }
-    // 为当前文档更新属性值
-    async updatePropertyValue(Property: string, newValue: string) {
-        if (this.hasYaml()) {
-            // 是否存在该属性？
-            if (this.hasProperty(Property)) {
-                // 检测是否为禁止操作项？
-                if (bannedProp.split("\n").indexOf(Property) == -1) {   // 不是禁止操作项
-                    oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, {
-                        path: this.path,
-                        operation: "updateValue",
-                        propertyName: Property,
-                        otherParam: this.getPropertyValue(Property)
-                    }))
-                    var oldContent = await this.app.vault.read(this.getTFile())
-                    // 找到Property的行号
-                    var oldContentList = oldContent.split("\n");
-                    var lineNo = 0;
-                    var startLine = 0;
-                    var endLine = 0;
-                    for (var line of oldContentList) {
-                        lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
-                        // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
-                        if (line.startsWith(Property + ":") && !startLine) {
-                            startLine = lineNo
-                        }
-                        else if ((line.search(/^.*?:/g) != -1 || line.search('---') != -1) && startLine) {
-                            endLine = lineNo
-                            break;
-                        }
-                    }
-
-                    // 修改属性值
-                    oldContentList.splice(startLine - 1, endLine - startLine, `${Property}: '${newValue.replace(/'/g, '"')}'`)
-                    var newContent = "";
-                    for (var line of oldContentList) {
-                        newContent = newContent + line + "\n";
-                    }
-
-                    // 写入
-                    await this.write(newContent)
                 }
+
+                // 修改属性值
+                oldContentList.splice(startLine - 1, endLine - startLine, `${Property}: '${newValue.replace(/'/g, '"')}'`)
+                var newContent = "";
+                for (var line of oldContentList) {
+                    newContent = newContent + line + "\n";
+                }
+
+                // 写入
+                await this.write(newContent)
             }
         }
     }
@@ -325,42 +277,39 @@ export class MDIO {
         if (this.hasYaml()) {
             // 是否存在该属性？
             if (this.hasProperty(delProperty)) {
-                // 检测是否为禁止操作项？
-                if (bannedProp.split("\n").indexOf(delProperty) == -1) {   // 不是禁止操作项
-                    oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, {
-                        path: this.path,
-                        operation: "del",
-                        propertyName: delProperty,
-                        otherParam: this.getPropertyValue(delProperty)
-                    }))
-                    var oldContent = await this.app.vault.read(this.getTFile())
-                    // 找到delProperty的行号
-                    var oldContentList = oldContent.split("\n");
-                    var lineNo = 0;
-                    var startLine = 0;
-                    var endLine = 0;
-                    for (var line of oldContentList) {
-                        lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
-                        // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
-                        if (line.startsWith(delProperty + ":") && !startLine) {
-                            startLine = lineNo
-                        }
-                        else if ((line.search(/^.*?:/g) != -1 || line.search('---') != -1) && startLine) {
-                            endLine = lineNo
-                            break;
-                        }
+                oneOperationYamlChangeHistory.push(new YamlChangeHistory(this.app, {
+                    path: this.path,
+                    operation: "del",
+                    propertyName: delProperty,
+                    otherParam: this.getPropertyValue(delProperty)
+                }))
+                var oldContent = await this.read()
+                // 找到delProperty的行号
+                var oldContentList = oldContent.split("\n");
+                var lineNo = 0;
+                var startLine = 0;
+                var endLine = 0;
+                for (var line of oldContentList) {
+                    lineNo = lineNo + 1;	// 起始行行数为1，第二行就是2
+                    // 第一次出现Property后开始进行操作，在这一行后面添加新行以输入属性和其值
+                    if (line.startsWith(delProperty + ":") && !startLine) {
+                        startLine = lineNo
                     }
-
-                    // 删除该属性
-                    oldContentList.splice(startLine - 1, endLine - startLine);
-                    var newContent = "";
-                    for (var line of oldContentList) {
-                        newContent = newContent + line + "\n";
+                    else if ((line.search(/^.*?:/g) != -1 || line.search('---') != -1) && startLine) {
+                        endLine = lineNo
+                        break;
                     }
-
-                    // 写入
-                    await this.write(newContent)
                 }
+
+                // 删除该属性
+                oldContentList.splice(startLine - 1, endLine - startLine);
+                var newContent = "";
+                for (var line of oldContentList) {
+                    newContent = newContent + line + "\n";
+                }
+
+                // 写入
+                await this.write(newContent)
             }
         }
     }
@@ -421,36 +370,6 @@ export class Search {
         this.app = app;
     }
 
-    getAllTagsName(): Array<string> {
-        var nameList = new Array();
-        for (var file of this.app.vault.getMarkdownFiles()) {
-            // 如果不是忽略文件夹下的文件就可以继续
-            if (!this.isBannedFolder(file.path)) {
-                for (var TagName of new MDIO(this.app, file.path).getTagsName()) {
-                    if (nameList.indexOf(TagName) == -1) {
-                        nameList.push(TagName)
-                    }
-                }
-            }
-        }
-        return nameList
-    }
-
-    getAllYamlPropertiesName(): Array<string> {
-        var yamlPropertiesName = new Array();
-        for (var file of this.app.vault.getMarkdownFiles()) {
-            // 如果不是忽略文件夹下的文件就可以继续
-            if (!this.isBannedFolder(file.path)) {
-                for (var propertyName of new MDIO(this.app, file.path).getPropertiesName()) {
-                    if (yamlPropertiesName.indexOf(propertyName) == -1) {
-                        yamlPropertiesName.push(propertyName)
-                    }
-                }
-            }
-        }
-        return yamlPropertiesName
-    }
-
     getAllFoldersPath(): Array<string> {
         var folders = new Array()
         this.app.vault.getAllLoadedFiles().map((file) => {
@@ -466,7 +385,7 @@ export class Search {
      * @param conditions 
      * @returns 
      */
-    getTAbstractFilesOfAFolder(folderPath: string): Array<TAbstractFile> {
+    getTFilesOfAFolder(folderPath: string): Array<TFile> {
         // 不存在则不返回任何文件并进行提示
         const folder = this.app.vault.getAbstractFileByPath(folderPath)
         if (!folder || !folder.hasOwnProperty("children")) {
@@ -477,14 +396,16 @@ export class Search {
         folder["children"].map((child: TAbstractFile) => {
             if (child.hasOwnProperty("extension")) {
                 if (child["extension"] == "md") {
-                    childMD.push(child)
+                    if (child instanceof TFile) {
+                        childMD.push(child)
+                    }
                 }
             }
         })
         return childMD
     }
 
-    getYamlPropertiesNameOfFiles(tflies: Array<TAbstractFile>): Array<string> {
+    getYamlPropertiesNameOfFiles(tflies: Array<TFile>): Array<string> {
         var yamlPropertiesName = new Array();
         for (var file of tflies) {
             for (var propertyName of new MDIO(this.app, file.path).getPropertiesName()) {
@@ -497,60 +418,8 @@ export class Search {
     }
 
     getYamlPropertiesNameOfAFolder(folderPath: string): Array<string> {
-        return this.getYamlPropertiesNameOfFiles(this.getTAbstractFilesOfAFolder(folderPath))
+        return this.getYamlPropertiesNameOfFiles(this.getTFilesOfAFolder(folderPath))
     }
 
-    getAllValuesOfAProperty(property: string): Array<string> {
-        var valuesList = new Array();
-        for (var file of this.app.vault.getMarkdownFiles()) {
-            // 如果不是忽略文件夹下的文件就可以继续
-            if (!this.isBannedFolder(file.path)) {
-                var md = new MDIO(this.app, file.path)
-                if (valuesList.indexOf(md.getPropertyValue(property)) == -1) {
-                    valuesList.push(md.getPropertyValue(property))
-                }
-            }
-        }
-        return valuesList
-    }
-
-    /**
-     * 检测是否为忽略文件夹下的文件
-     * @param path 
-     * @returns 
-     */
-    isBannedFolder(path: string) {
-        if (bannedFolder) {
-            for (var folder of bannedFolder.split('\n')) {
-                if (path.startsWith(folder)) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
-    /**
-     * 获取所有的文件
-     */
-    getAllFilesPathList(): Array<string> {
-        var filesList = new Array()
-        for (var file of this.app.vault.getMarkdownFiles()) {
-            filesList.push(file.path)
-        }
-        return filesList
-    }
-    /**
-     * 获取所有的文件夹路径
-     */
-    getAllFoldersPathList(): Array<string> {
-        var foldersList = new Array()
-        for (var file of this.app.vault.getAllLoadedFiles()) {
-            if (!file.hasOwnProperty("extension")) {
-                foldersList.push(file.path)
-            }
-        }
-        return foldersList
-    }
 }
 

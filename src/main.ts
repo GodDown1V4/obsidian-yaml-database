@@ -23,7 +23,7 @@ const DEFAULT_SETTINGS: pluginSettings = {
 }
 
 
-export default class AgtablePlugin extends Plugin {
+export default class YamlDatabasePlugin extends Plugin {
   settings: pluginSettings
 
   async onload(): Promise<void> {
@@ -141,10 +141,10 @@ export default class AgtablePlugin extends Plugin {
 
 // 插件设置页面
 class SettingTab extends PluginSettingTab {
-  plugin: AgtablePlugin;
+  plugin: YamlDatabasePlugin;
   DBinfoDiv: HTMLDivElement
 
-  constructor(app: App, plugin: AgtablePlugin) {
+  constructor(app: App, plugin: YamlDatabasePlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -186,7 +186,7 @@ class SettingTab extends PluginSettingTab {
 
 class deleteDBconfirm extends Modal {
   settingTab: SettingTab
-  plugin: AgtablePlugin
+  plugin: YamlDatabasePlugin
   index: number
   id: string
 

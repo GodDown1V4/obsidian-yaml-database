@@ -2,7 +2,7 @@ import { ColDef, GridApi } from "ag-grid-community";
 import t from "i18n";
 import { App, Notice } from "obsidian";
 import { MDIO, Search } from "./md";
-import AgtablePlugin from "main";
+import YamlDatabasePlugin from "main";
 import DataGrid from "components/DataGrid";
 
 
@@ -18,7 +18,7 @@ export interface dbconfig {
 export class DataJson {
     grid: DataGrid
     app: App;
-    plugin: AgtablePlugin
+    plugin: YamlDatabasePlugin
 
     constructor(grid: DataGrid) {
         this.grid = grid
@@ -144,11 +144,11 @@ export class DataJson {
     async getRowsFromDataFiles() {
         var DBconfig = await this.grid.getDBconfig()
         var cols = await this.getColumsFromDataJson()
-        const rows = new Search(this.app).getTAbstractFilesOfAFolder(DBconfig.folder).map((tabstractFile) => {
-            var md = new MDIO(this.app, tabstractFile.path)
+        const rows = new Search(this.app).getTFilesOfAFolder(DBconfig.folder).map((tFile) => {
+            var md = new MDIO(this.app, tFile.path)
             const arow = cols.map((col: ColDef) => {
                 if (col.field == "yamleditFirstFileColumn") {
-                    return { [col.field]: tabstractFile.path }
+                    return { [col.field]: tFile.path }
                 } else {
                     return { [col.field]: md.getPropertyValue(col.field) }
                 }
@@ -186,7 +186,7 @@ export class DataJson {
                 // console.log(item, col[item], typeof (col[item]))
                 if (needToSave.indexOf(item) != -1) {
                     if (item == "cellEditorParams") {
-                        if (col.type == "select" || col.type == "multiSelect" || col.type == "tags") {
+                        if (col.type == "select" || col.type == "multiSelect" || col.type == "tags" || col.type == "formula") {
                             newColDef[item] = {
                                 "values": col[item]["values"]
                             }
