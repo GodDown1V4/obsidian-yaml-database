@@ -27,6 +27,7 @@ export default {
   plsSelect: "Please Select",
   wrongFormula: "Wrong Formula, pls re-edit",
   existedColsName: 'Existed Columns Names',
+  formulaIntro: 'read github Readme.md to edit this',
   // 表头操作区域
   createNewFile: "New",
   untitled: "Untitled",
@@ -62,5 +63,7 @@ export default {
   inLink: "Internal Link",
   select: "Select",
   multiSelect: "Multiselect",
-  formula: "Formula"
+  formula: "Formula",
+  createdTime: "Created Time",
+  modifiedTime: "Modified Time",
 }

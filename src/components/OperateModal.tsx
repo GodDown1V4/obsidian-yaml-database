@@ -363,14 +363,14 @@ export class EditPropertyMolda extends Modal {
                     const colsName = superThis.api.getColumnDefs().map((col: ColDef) => {
                         return col.colId
                     })
-                    typeConfigDiv.innerHTML = `${t("typeConfig")}<br>${t("existedColsName")}: ${colsName.join(", ")}`
+                    typeConfigDiv.innerHTML = `${t("typeConfig")}: <a href='https://github.com/1657744680/obsidian-yaml-database#formula%E5%B1%9E%E6%80%A7%E9%AB%98%E7%BA%A7'>README Formula</a><br>${t("existedColsName")}: ${colsName.join(", ")}`
                     typeConfigDiv.createEl("br")
                     const textarea = typeConfigDiv.createEl("textarea", {
                         attr: {
                             class: "formula"
                         }
                     })
-                    textarea.placeholder = t("selectOptionsIntro")
+                    textarea.placeholder = t("formulaIntro")
                     columns.map((col: ColDef) => {
                         if (col.colId == thisColumn && col.cellEditorParams["values"]) {
                             textarea.defaultValue = col.cellEditorParams["values"]

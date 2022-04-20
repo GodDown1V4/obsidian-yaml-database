@@ -109,3 +109,8 @@ a.myUrl {
   overflow: hidden;
   /* 内容会被修剪，并且超过设置宽度的内容是不可见的 */
 }
+
+textarea.formula {
+  width: 700px;
+  height: 350px;
+}

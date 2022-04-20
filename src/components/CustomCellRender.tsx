@@ -1,6 +1,6 @@
 import { ICellRendererParams } from 'ag-grid-community'
 import React, { Component, createRef } from 'react'
-import { App, MarkdownRenderer } from 'obsidian'
+import { App, MarkdownRenderer, TFile } from 'obsidian'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory } from 'yaml/md'
 import { linkSync } from 'fs'
 import t from 'i18n'
@@ -258,6 +258,77 @@ export class InLinkCellRender extends Component<Props, State> {
         >
           {cellValue.split("/").pop().replace(".md", "")}
         </a>
+      </p>
+    )
+  }
+}
+
+export class CtimeCellRender extends Component<Props, State> {
+
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      cellValue: CtimeCellRender.getValueToDisplay(props)
+    }
+  }
+
+  // update cellValue when the cell's props are updated
+  static getDerivedStateFromProps(nextProps: any) {
+    return {
+      cellValue: CtimeCellRender.getValueToDisplay(nextProps)
+    };
+  }
+
+  static getValueToDisplay(params: any) {
+    return params.valueFormatted ? params.valueFormatted : params.value;
+  }
+
+  render() {
+    const filePath = this.props.data["yamleditFirstFileColumn"]
+    const tabFile = this.props.app.vault.getAbstractFileByPath(filePath)
+    var ctime = ""
+    if (tabFile instanceof TFile) {
+      const time = new Date(tabFile.stat.ctime)
+      ctime = `${time.toLocaleDateString()} ${time.toLocaleTimeString()}`
+    }
+    return (
+      <p>
+        {ctime}
+      </p>
+    )
+  }
+}
+export class MtimeCellRender extends Component<Props, State> {
+
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      cellValue: CtimeCellRender.getValueToDisplay(props)
+    }
+  }
+
+  // update cellValue when the cell's props are updated
+  static getDerivedStateFromProps(nextProps: any) {
+    return {
+      cellValue: CtimeCellRender.getValueToDisplay(nextProps)
+    };
+  }
+
+  static getValueToDisplay(params: any) {
+    return params.valueFormatted ? params.valueFormatted : params.value;
+  }
+
+  render() {
+    const filePath = this.props.data["yamleditFirstFileColumn"]
+    const tabFile = this.props.app.vault.getAbstractFileByPath(filePath)
+    var mtime = ""
+    if (tabFile instanceof TFile) {
+      const time = new Date(tabFile.stat.mtime)
+      mtime = `${time.toLocaleDateString()} ${time.toLocaleTimeString()}`
+    }
+    return (
+      <p>
+        {mtime}
       </p>
     )
   }

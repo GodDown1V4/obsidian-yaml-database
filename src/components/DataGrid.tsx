@@ -21,7 +21,7 @@ import {
   ValueSetterParams,
 } from 'ag-grid-community'
 import CustomHeader from './CustomHeader'
-import { ImgCellRender, InLinkCellRender, TagCellRender, TextCellRender, TodoCellRender, UrlCellRender } from './CustomCellRender'
+import { CtimeCellRender, ImgCellRender, InLinkCellRender, MtimeCellRender, TagCellRender, TextCellRender, TodoCellRender, UrlCellRender } from './CustomCellRender'
 import { DataJson, dbconfig } from 'yaml/parse'
 import { OperateMolda } from './OperateModal'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from 'yaml/md'
@@ -139,6 +139,18 @@ export const columnTypes = {
   },
   'formula': {
     cellRenderer: TextCellRender,
+    cellEditor: 'agTextCellEditor',
+    filter: 'agTextColumnFilter',
+    editable: false,
+  },
+  'createdTime': {
+    cellRenderer: CtimeCellRender,
+    cellEditor: 'agTextCellEditor',
+    filter: 'agTextColumnFilter',
+    editable: false,
+  },
+  'modifiedTime': {
+    cellRenderer: MtimeCellRender,
     cellEditor: 'agTextCellEditor',
     filter: 'agTextColumnFilter',
     editable: false,
@@ -275,6 +287,17 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
         el.filter = columnTypes[String(el.type)]["filter"]
         el.editable = columnTypes[String(el.type)]["editable"]
         el.headerComponent = this.state.isEditingHeaders ? CustomHeader : ""
+        if (el.type == "number") {
+          el.comparator = function (valueA, valueB, nodeA, nodeB, isInverted) {
+            return valueA - valueB
+          }
+        }
+        else {
+          el.comparator = function (valueA, valueB, nodeA, nodeB, isInverted) {
+            if (valueA == valueB) return 0;
+            return (valueA > valueB) ? 1 : -1;
+          }
+        }
         if (el.type == "formula" && this.state.columnDefs && el.cellEditorParams["values"]) {
           const getter = genFormulaValueGetter(this.state.columnDefs, el.cellEditorParams["values"])
           if (typeof (getter) == "string") {

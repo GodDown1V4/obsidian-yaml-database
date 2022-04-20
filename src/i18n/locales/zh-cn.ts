@@ -28,6 +28,7 @@ export default {
   plsSelect: "请选择",
   wrongFormula: "公式错误, 请重新编写",
   existedColsName: "当前表格的属性名",
+  formulaIntro: '阅读GitHub的readme文档以编写公式',
   // 表头操作区域
   createNewFile: "新建",
   untitled: "未命名",
@@ -63,5 +64,7 @@ export default {
   inLink: "内部链接",
   select: "单选",
   multiSelect: "多选",
-  formula: "公式"
+  formula: "公式",
+  createdTime: "创建时间",
+  modifiedTime: "修改时间",
 }

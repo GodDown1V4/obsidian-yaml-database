@@ -24,32 +24,6 @@
           "hide": true
         },
         {
-          "colId": "评分",
-          "field": "评分",
-          "headerName": "测试2",
-          "type": "text",
-          "width": 200,
-          "sort": null,
-          "sortIndex": null,
-          "hide": true
-        },
-        {
-          "cellEditorParams": {
-            "values": [
-              "认识",
-              "test"
-            ]
-          },
-          "colId": "一天8杯水",
-          "field": "一天8杯水",
-          "headerName": "一天8杯水",
-          "type": "multiSelect",
-          "width": 200,
-          "sort": null,
-          "sortIndex": null,
-          "hide": true
-        },
-        {
           "colId": "官方网站",
           "field": "官方网站",
           "headerName": "官方网站",
@@ -209,13 +183,35 @@
           "sortIndex": 0
         },
         {
-          "cellEditorParams": {
-            "values": "return prop(评分)"
-          },
           "colId": "ceshi",
           "field": "ceshi",
           "headerName": "ceshi",
-          "type": "formula",
+          "type": "modifiedTime",
+          "width": 200,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "cellEditorParams": {
+            "values": [
+              "认识",
+              "test"
+            ]
+          },
+          "colId": "一天8杯水",
+          "field": "一天8杯水",
+          "headerName": "一天8杯水",
+          "type": "multiSelect",
+          "width": 200,
+          "sort": null,
+          "sortIndex": null,
+          "hide": true
+        },
+        {
+          "colId": "评分",
+          "field": "评分",
+          "headerName": "测试2",
+          "type": "number",
           "width": 200,
           "sort": null,
           "sortIndex": null
