@@ -246,6 +246,15 @@ return prop(tag)=="test"? true:false
 
 # 版本更新日志
 
+## 0.7.8
+
+## 修复
+
+- [x] 修复数字number排序时值不为数字导致排序无效的问题
+- [x] 修复复选框checkbox排序问题
+- [x] 修复创建时间createdTime排序无效问题
+- [x] 修复修改时间modifiedTime排序无效问题
+
 ## 0.7.7
 
 ### 修复

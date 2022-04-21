@@ -149,7 +149,16 @@ export class DataJson {
             const arow = cols.map((col: ColDef) => {
                 if (col.field == "yamleditFirstFileColumn") {
                     return { [col.field]: tFile.path }
-                } else {
+                }
+                else if (col.type == 'createdTime') {
+                    const time = new Date(tFile.stat.ctime)
+                    return { [col.field]: `${time.toLocaleDateString()} ${time.toLocaleTimeString()}` }
+                }
+                else if (col.type == 'modifiedTime') {
+                    const time = new Date(tFile.stat.mtime)
+                    return { [col.field]: `${time.toLocaleDateString()} ${time.toLocaleTimeString()}` }
+                }
+                else {
                     return { [col.field]: md.getPropertyValue(col.field) }
                 }
             })

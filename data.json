@@ -179,8 +179,8 @@
           "headerName": "文件",
           "type": "inLink",
           "width": 200,
-          "sort": "desc",
-          "sortIndex": 0
+          "sort": null,
+          "sortIndex": null
         },
         {
           "colId": "ceshi",
@@ -188,8 +188,8 @@
           "headerName": "ceshi",
           "type": "modifiedTime",
           "width": 200,
-          "sort": null,
-          "sortIndex": null
+          "sort": "desc",
+          "sortIndex": 0
         },
         {
           "cellEditorParams": {
@@ -211,7 +211,7 @@
           "colId": "评分",
           "field": "评分",
           "headerName": "测试2",
-          "type": "number",
+          "type": "checkbox",
           "width": 200,
           "sort": null,
           "sortIndex": null

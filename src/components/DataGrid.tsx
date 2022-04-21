@@ -144,13 +144,13 @@ export const columnTypes = {
     editable: false,
   },
   'createdTime': {
-    cellRenderer: CtimeCellRender,
+    cellRenderer: TextCellRender,
     cellEditor: 'agTextCellEditor',
     filter: 'agTextColumnFilter',
     editable: false,
   },
   'modifiedTime': {
-    cellRenderer: MtimeCellRender,
+    cellRenderer: TextCellRender,
     cellEditor: 'agTextCellEditor',
     filter: 'agTextColumnFilter',
     editable: false,
@@ -287,17 +287,36 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
         el.filter = columnTypes[String(el.type)]["filter"]
         el.editable = columnTypes[String(el.type)]["editable"]
         el.headerComponent = this.state.isEditingHeaders ? CustomHeader : ""
+        // 排序处理
         if (el.type == "number") {
           el.comparator = function (valueA, valueB, nodeA, nodeB, isInverted) {
+            valueA = Number(valueA);
+            valueB = Number(valueB);
+            if (isNaN(valueA) && isNaN(valueB)) return 0;
+            if (isNaN(valueA)) return -1;
+            if (isNaN(valueB)) return 1;
             return valueA - valueB
+          }
+        }
+        else if (el.type == "checkbox") {
+          el.comparator = function (valueA, valueB, nodeA, nodeB, isInverted) {
+            valueA = String(valueA);
+            valueB = String(valueB);
+            if (valueA == valueB) return 0;
+            if (valueA == 'true') return 1;
+            if (valueB == 'true') return -1;
+            return (valueA > valueB) ? 1 : -1;
           }
         }
         else {
           el.comparator = function (valueA, valueB, nodeA, nodeB, isInverted) {
+            valueA = String(valueA);
+            valueB = String(valueB);
             if (valueA == valueB) return 0;
             return (valueA > valueB) ? 1 : -1;
           }
         }
+        // formula 处理
         if (el.type == "formula" && this.state.columnDefs && el.cellEditorParams["values"]) {
           const getter = genFormulaValueGetter(this.state.columnDefs, el.cellEditorParams["values"])
           if (typeof (getter) == "string") {
@@ -314,6 +333,7 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
         else {
           el.valueGetter = defaultValueGetter
         }
+        // 返回 el
         return el
       })
       this.api.setColumnDefs(newColumns)
@@ -383,6 +403,8 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
   }
 
   async onCellEditingStopped(event: CellEditingStoppedEvent) {
+    // 这两个属性不会写入文档，否则会影响文档的修改时间
+    if (event.colDef.type == "createdTime" || event.colDef.type == 'modifiedTime') return;
 
     if (event.oldValue != event.newValue) {
       const rowIndex = event.rowIndex // 行索引
