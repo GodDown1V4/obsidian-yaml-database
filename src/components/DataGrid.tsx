@@ -508,7 +508,6 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
     this.pinTopUntitledRow()
     // filter初始化
     this.dataJson.loadFliterModal(event.api)
-
   }
 
   onSelectionChanged(event: SelectionChangedEvent) {

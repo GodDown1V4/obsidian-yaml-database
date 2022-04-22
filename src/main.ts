@@ -6,6 +6,7 @@ import {
   Setting,
   Modal,
   ButtonComponent,
+  TFile,
 } from 'obsidian'
 import React from 'react'
 import TableView from 'views/TableView'
@@ -29,7 +30,6 @@ export default class YamlDatabasePlugin extends Plugin {
   async onload(): Promise<void> {
     await this.loadSettings();
     this.addSettingTab(new SettingTab(this.app, this));
-
 
     // 命令：还原上一步操作
     this.addCommand({
@@ -136,6 +136,7 @@ export default class YamlDatabasePlugin extends Plugin {
   async saveSettings() {
     await this.saveData(this.settings);
   }
+
 }
 
 

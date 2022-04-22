@@ -150,6 +150,9 @@ export class DataJson {
                 if (col.field == "yamleditFirstFileColumn") {
                     return { [col.field]: tFile.path }
                 }
+                else if (col.type == 'checkbox') {
+                    return { [col.field]: md.getPropertyValue(col.field) == "true" ? "true" : "false" }
+                }
                 else if (col.type == 'createdTime') {
                     const time = new Date(tFile.stat.ctime)
                     return { [col.field]: `${time.toLocaleDateString()} ${time.toLocaleTimeString()}` }

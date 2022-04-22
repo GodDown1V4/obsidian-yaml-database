@@ -44,14 +44,14 @@
           "hide": true
         },
         {
-          "colId": "banner",
-          "field": "banner",
-          "headerName": "banner",
+          "colId": "制片国家/地区",
+          "field": "制片国家/地区",
+          "headerName": "制片国家/地区",
           "type": "text",
           "width": 200,
-          "hide": true,
           "sort": null,
-          "sortIndex": null
+          "sortIndex": null,
+          "hide": true
         },
         {
           "colId": "观影时间",
@@ -94,14 +94,14 @@
           "sortIndex": null
         },
         {
-          "colId": "制片国家/地区",
-          "field": "制片国家/地区",
-          "headerName": "制片国家/地区",
-          "type": "text",
+          "colId": "ceshi",
+          "field": "ceshi",
+          "headerName": "ceshi",
+          "type": "modifiedTime",
           "width": 200,
-          "hide": true,
-          "sort": null,
-          "sortIndex": null
+          "sort": "desc",
+          "sortIndex": 0,
+          "hide": true
         },
         {
           "colId": "语言",
@@ -183,13 +183,13 @@
           "sortIndex": null
         },
         {
-          "colId": "ceshi",
-          "field": "ceshi",
-          "headerName": "ceshi",
-          "type": "modifiedTime",
+          "colId": "banner",
+          "field": "banner",
+          "headerName": "banner",
+          "type": "text",
           "width": 200,
-          "sort": "desc",
-          "sortIndex": 0
+          "sort": null,
+          "sortIndex": null
         },
         {
           "cellEditorParams": {
