@@ -1,6 +1,6 @@
 import React from 'react'
 import { ColDef, IHeaderParams } from 'ag-grid-community'
-import { apiVersion, App, Menu, Notice, Point } from 'obsidian'
+import { Menu, Notice, Point } from 'obsidian'
 import t from 'i18n'
 import { DataJson } from 'yaml/parse'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from 'yaml/md'

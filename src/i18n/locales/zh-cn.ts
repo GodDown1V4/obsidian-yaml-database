@@ -3,6 +3,13 @@ export default {
   settingsIntro: "只要您曾经加载过一个有特殊id的数据表格, 那么他就会被记录在这里",
   deleteThisDBConfig: "删除这个数据表格的配置信息",
   deleteDBConfirm: "您确定要删除该数据表格配置信息？此操作无法恢复",
+  DBsUseRepeatedFolders: "文件夹重复☹️",
+  exportImportIntro: "你可以导出所有数据表格配置信息至'YAML Database Config.json'或者从'YAML Database Config.json'导入所有数据表格配置信息",
+  exportDB: "导出",
+  exportDBtooltip: "导出所有数据表格配置信息至'YAML Database Config.json'",
+  importDB: "导入",
+  importDBtooltip: "从'YAML Database Config.json'导入所有数据表格配置信息",
+  cantFindJson: "未找到'YAML Database Config.json'文件",
   // 还原操作
   restore: "还原上一步操作",
   // 行操作删除文档
