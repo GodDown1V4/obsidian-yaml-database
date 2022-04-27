@@ -264,12 +264,222 @@
           "hide": true,
           "sort": null,
           "sortIndex": null
+        },
+        {
+          "colId": "ceshi",
+          "field": "ceshi",
+          "headerName": "ceshi",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "一天8杯水",
+          "field": "一天8杯水",
+          "headerName": "一天8杯水",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "banner",
+          "field": "banner",
+          "headerName": "banner",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "海报",
+          "field": "海报",
+          "headerName": "海报",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "已看完",
+          "field": "已看完",
+          "headerName": "已看完",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "评分",
+          "field": "评分",
+          "headerName": "评分",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "观影时间",
+          "field": "观影时间",
+          "headerName": "观影时间",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "导演",
+          "field": "导演",
+          "headerName": "导演",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "编剧",
+          "field": "编剧",
+          "headerName": "编剧",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "主演",
+          "field": "主演",
+          "headerName": "主演",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "类型",
+          "field": "类型",
+          "headerName": "类型",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "官方网站",
+          "field": "官方网站",
+          "headerName": "官方网站",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "制片国家/地区",
+          "field": "制片国家/地区",
+          "headerName": "制片国家/地区",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "语言",
+          "field": "语言",
+          "headerName": "语言",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "上映日期",
+          "field": "上映日期",
+          "headerName": "上映日期",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "片长",
+          "field": "片长",
+          "headerName": "片长",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "又名",
+          "field": "又名",
+          "headerName": "又名",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "IMDb",
+          "field": "IMDb",
+          "headerName": "IMDb",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "banner_y",
+          "field": "banner_y",
+          "headerName": "banner_y",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "Property",
+          "field": "Property",
+          "headerName": "Property",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "banner_x",
+          "field": "banner_x",
+          "headerName": "banner_x",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         }
       ],
-      "folder": "日记",
+      "folder": "电影",
       "paginationSize": 50,
       "filterModal": {},
-      "templatePath": ""
+      "templatePath": "电影/测试2.md"
     },
     {
       "id": "relation",
@@ -318,6 +528,16 @@
           "width": 200,
           "sort": null,
           "sortIndex": null
+        },
+        {
+          "colId": "parent",
+          "field": "parent",
+          "headerName": "parent",
+          "type": "text",
+          "width": 200,
+          "hide": true,
+          "sort": null,
+          "sortIndex": null
         }
       ],
       "folder": "/",
@@ -327,5 +547,5 @@
     }
   ],
   "DBdataJsonLocation": "vaultFolder",
-  "DBdataJsonFolderPath": "电影"
+  "DBdataJsonFolderPath": "日记"
 }

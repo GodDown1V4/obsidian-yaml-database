@@ -165,9 +165,9 @@ export class OperateModal extends Modal {
             }
         })
         folderConfirmButton.innerHTML = t("applyTheChanges")
-        folderConfirmButton.onclick = function () {
+        folderConfirmButton.onclick = async function () {
             if (new Search(superThis.app).getAllFoldersPath().indexOf(folderInput.value) != -1) {
-                new DataJson(superThis.grid).setFolder(folderInput.value)
+                await new DataJson(superThis.grid).setFolder(folderInput.value)
                 superThis.grid.refreshBtnOnClick()
                 superThis.close()
             }

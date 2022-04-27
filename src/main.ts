@@ -261,13 +261,13 @@ class SettingTab extends PluginSettingTab {
             type: "text",
             class: 'filterInput',
             placeholder: t("plsSelectAFolder"),
-            list: "folderSearch",
+            list: "datajsonfolderSearch",
             "value": this.plugin.settings.DBdataJsonFolderPath
           }
         })
         const folderInputDataList = DataJsonSetting.createEl("datalist", {
           attr: {
-            id: "folderSearch"
+            id: "datajsonfolderSearch"
           }
         })
         new Search(this.app).getAllFoldersPath().map((folder) => {
