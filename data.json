@@ -14,26 +14,6 @@
           "hide": true
         },
         {
-          "colId": "海报",
-          "field": "海报",
-          "headerName": "海报",
-          "type": "img",
-          "width": 200,
-          "sort": null,
-          "sortIndex": null,
-          "hide": true
-        },
-        {
-          "colId": "官方网站",
-          "field": "官方网站",
-          "headerName": "官方网站",
-          "type": "url",
-          "width": 186,
-          "sort": null,
-          "sortIndex": null,
-          "hide": true
-        },
-        {
           "colId": "已看完",
           "field": "已看完",
           "headerName": "已看完",
@@ -99,8 +79,8 @@
           "headerName": "ceshi",
           "type": "modifiedTime",
           "width": 200,
-          "sort": "desc",
-          "sortIndex": 0,
+          "sort": null,
+          "sortIndex": null,
           "hide": true
         },
         {
@@ -144,10 +124,10 @@
           "sortIndex": null
         },
         {
-          "colId": "主演",
-          "field": "主演",
-          "headerName": "主演",
-          "type": "text",
+          "colId": "海报",
+          "field": "海报",
+          "headerName": "海报",
+          "type": "img",
           "width": 200,
           "sort": null,
           "sortIndex": null,
@@ -192,6 +172,25 @@
           "sortIndex": null
         },
         {
+          "colId": "Property",
+          "field": "Property",
+          "headerName": "Property",
+          "type": "createdTime",
+          "width": 200,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "官方网站",
+          "field": "官方网站",
+          "headerName": "官方网站",
+          "type": "url",
+          "width": 186,
+          "sort": null,
+          "sortIndex": null,
+          "hide": true
+        },
+        {
           "cellEditorParams": {
             "values": [
               "认识",
@@ -210,11 +209,22 @@
         {
           "colId": "评分",
           "field": "评分",
-          "headerName": "测试2",
-          "type": "checkbox",
+          "headerName": "评分",
+          "type": "text",
           "width": 200,
+          "hide": true,
           "sort": null,
           "sortIndex": null
+        },
+        {
+          "colId": "主演",
+          "field": "主演",
+          "headerName": "主演",
+          "type": "text",
+          "width": 200,
+          "sort": null,
+          "sortIndex": null,
+          "hide": true
         }
       ],
       "folder": "电影",
@@ -260,6 +270,62 @@
       "paginationSize": 50,
       "filterModal": {},
       "templatePath": ""
+    },
+    {
+      "id": "relation",
+      "colDef": [
+        {
+          "colId": "测试2",
+          "field": "测试2",
+          "headerName": "测试2",
+          "type": "text",
+          "width": 200,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "yamleditFirstFileColumn",
+          "field": "yamleditFirstFileColumn",
+          "headerName": "文件",
+          "type": "inLink",
+          "width": 200,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "colId": "relation",
+          "field": "relation",
+          "headerName": "relation",
+          "type": "inLink",
+          "width": 200,
+          "sort": null,
+          "sortIndex": null
+        }
+      ],
+      "folder": "测试",
+      "paginationSize": 50,
+      "filterModal": {},
+      "templatePath": ""
+    },
+    {
+      "id": "自动创建yaml演示.md2022/4/2717:01:41",
+      "colDef": [
+        {
+          "colId": "yamleditFirstFileColumn",
+          "field": "yamleditFirstFileColumn",
+          "headerName": "文件",
+          "type": "inLink",
+          "width": 200,
+          "sort": null,
+          "sortIndex": null
+        }
+      ],
+      "folder": "/",
+      "paginationSize": 50,
+      "filterModal": {},
+      "templatePath": ""
     }
-  ]
+  ],
+  "DBdataJsonLocation": "vaultFolder",
+  "DBdataJsonFolderPath": "电影"
 }

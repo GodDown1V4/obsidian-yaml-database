@@ -4,14 +4,15 @@ export default {
   deleteThisDBConfig: "Delete the configuration information for this data table",
   deleteDBConfirm: "Are you sure you want to delete the data table configuration information? This action cannot be resumed",
   DBsUseRepeatedFolders: "Folder Repeated☹️",
-  exportImportIntro: "You can export databases config to 'YAML Database Config.json' or import databases config from 'YAML Database Config.json'",
-  exportDB: "Export",
-  exportDBtooltip: "Export Databases Config to 'YAML Database Config.json'",
-  importDB: "Import",
-  importDBtooltip: "Import Databases Config from 'YAML Database Config.json'",
-  cantFindJson: "can't find 'YAML Database Config.json'",
+  DBlocationTitle: "Configuration location",
+  DBlocationDes: "Select where to store the data table configuration information, The configuration information is stored in a file named 'YAML Database Config.json' under the plugin folder or vault folder",
+  pluginFolder: "Plugin Folder",
+  vaultFolder: "Vault Folder",
   // 还原操作
   restore: "Restore the previous operation",
+  // 创建表格操作
+  createTable: "Create a database",
+  autoCreate: "Created automatically",
   // 行操作删除文档
   deleteThisRow: 'Delete this Document',
   // 文件名称设置
@@ -24,6 +25,8 @@ export default {
   // 文件列的headerName
   yamleditFirstFileColumn: "File",
   // 属性操作
+  colid: "PropertyID",
+  displayName: "DisplayName",
   renameDisplayName: 'Rename Display Name',
   renamePropName: 'Rename Property',
   editProperty: 'Edit Property',

@@ -4,7 +4,7 @@ import { Menu, Notice, Point } from 'obsidian'
 import t from 'i18n'
 import { DataJson } from 'yaml/parse'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from 'yaml/md'
-import { EditPropertyMolda } from './OperateModal'
+import { EditPropertyMoldal, PropControlModal } from './OperateModal'
 import DataGrid from './DataGrid'
 
 interface Props extends IHeaderParams {
@@ -15,7 +15,6 @@ interface State {
   isRenamingHeaderName: boolean
   isRenamingPropName: boolean
   isSelectingPropName: boolean
-  isAddingPropName: boolean
 }
 
 interface RowData {
@@ -31,9 +30,7 @@ export default class CustomHeader extends React.Component<Props, State> {
       isRenamingHeaderName: false,
       isRenamingPropName: false,
       isSelectingPropName: false,
-      isAddingPropName: false,
     }
-
 
     this.handleContextMenu = this.handleContextMenu.bind(this)
     this.addColumn = this.addColumn.bind(this)    // 添加列
@@ -45,7 +42,7 @@ export default class CustomHeader extends React.Component<Props, State> {
     event.preventDefault()
     const thisColumn = this.props.column.getColId()
     const menu = new Menu(this.props.grid.app)
-
+    if (thisColumn == "yamleditLastAddColumn" || thisColumn == "yamleditPropControlColumn") return;
     // renameDisplayName
     menu.addItem((item) =>
       item
@@ -55,8 +52,8 @@ export default class CustomHeader extends React.Component<Props, State> {
           this.setState({ isRenamingHeaderName: true })
         })
     )
-    menu.addSeparator()
     if (thisColumn != "yamleditFirstFileColumn") {
+      menu.addSeparator()
       // 选择yaml属性
       menu.addItem((item) =>
         item
@@ -73,7 +70,7 @@ export default class CustomHeader extends React.Component<Props, State> {
           .setIcon('vertical-three-dots')
           .onClick(() => {
             const thisColumn = this.props.column.getColId()
-            new EditPropertyMolda(this.props.grid, thisColumn).open()
+            new EditPropertyMoldal(this.props.grid, thisColumn).open()
           })
       )
       // renamePropName
@@ -96,15 +93,6 @@ export default class CustomHeader extends React.Component<Props, State> {
           })
       })
     }
-    // 右侧添加新列
-    menu.addItem((item) =>
-      item
-        .setTitle(t('addNewColumn'))
-        .setIcon('plus-with-circle')
-        .onClick(() => {
-          this.setState({ isAddingPropName: true })
-        })
-    )
 
     const x = event.clientX
     const y = event.clientY
@@ -135,50 +123,17 @@ export default class CustomHeader extends React.Component<Props, State> {
     this.props.columnApi.moveColumn(thisColumn, index2)
   }
 
-  async addColumn(propName: string) {
-    const thisColumn = this.props.column.getColId()
-    var column = this.props.api.getColumnDefs()
-    var showColumns = new Array()
-    var hideColumns = new Array()
-    // 获取索引、显示及隐藏的列
-    var index1 = 0
-    column.map((col: ColDef, index) => {
-      if (col.field == thisColumn) {
-        index1 = index
-      }
-      if (col.hide) {
-        hideColumns.push(col.colId)
-      }
-      else {
-        showColumns.push(col.colId)
-      }
+  addColumn() {
+    const newCols = this.props.api.getColumnDefs()
+    newCols.push({
+      field: "Property",
+      headerComponent: CustomHeader,
+      type: "text",
     })
-    // 如果添加的不是当前已经显示的列都可以添加
-    if (showColumns.indexOf(propName) == -1) {
-      // 判断是添加已有的属性还是新的属性
-      if (hideColumns.indexOf(propName) == -1) {  // 添加新的属性
-        oneOperationYamlChangeHistory.length = 0
-        const DBconfig = await this.props.grid.getDBconfig()
-        new Search(this.props.grid.app).getTFilesOfAFolder(DBconfig.folder).map(async (file) => {
-          await new MDIO(this.props.grid.app, file.path).addProperty(propName)
-        })
-        allYamlChangeHistory.push(oneOperationYamlChangeHistory.slice(0))
-
-        var newCols = this.props.api.getColumnDefs()
-        newCols.push({
-          colId: propName,
-          field: propName,
-          headerName: propName,
-          type: "text",
-        })
-        this.props.api.setColumnDefs(newCols)
-        // this.props.columnApi.addValueColumn(propName)
-      }
-      else {
-        this.props.columnApi.setColumnVisible(propName, true)
-      }
-      this.props.columnApi.moveColumn(propName, index1 + 1)
-    }
+    this.props.api.setColumnDefs(newCols)
+    // this.props.api.getColumnDefs().map((col: ColDef, index: number) => {
+    //   if (index == newCols.length - 1) this.props.columnApi.moveColumn(col.colId, newCols.length - 2)
+    // })
   }
 
   HideColumn() {
@@ -232,10 +187,6 @@ export default class CustomHeader extends React.Component<Props, State> {
 
     this.props.api.setColumnDefs(newColumns)
     this.props.api.setRowData(newRowData)
-    // 由于修改了文档的yaml属性，所以这里会直接保存，会导致表格重新渲染
-    setTimeout(() => {
-      new DataJson(this.props.grid).saveColDef(this.props.api)
-    }, 100)
   }
 
 
@@ -340,58 +291,19 @@ export default class CustomHeader extends React.Component<Props, State> {
         </select>
       )
     }
-    else if (this.state.isAddingPropName) {
-      const thisColumn = this.props.column.getColId()
-      const columns = this.props.api.getColumnDefs()
-
-      // 已经显示的列就不能在添加了
-      var showColumns = new Array()
-      columns.map((col: ColDef) => {
-        if (!col.hide) {
-          showColumns.push(col.colId)
-        }
-      })
-
-      label = (
-        <>
-          <input
-            autoFocus={true}
-            type="text"
-            list='addYamlProperty'
-            style={{ height: '100%', width: '100%' }}
-            placeholder={t("plsInput")}
-            onBlur={(event) => {
-              this.setState({ isAddingPropName: false })
-              if (showColumns.indexOf(event.target.value) == -1 && event.target.value.trim()) {
-                this.addColumn(event.target.value)
-              }
-            }}
-            onKeyDown={(event) => {
-              if (event.key == "Enter") {
-                event.currentTarget.blur()
-              }
-            }}
-            width={200}
-          />
-          <datalist
-            id="addYamlProperty"
-          >
-            {
-              columns.map((col: ColDef) => {
-                if (col.hide) {
-                  return (<option value={col.field} key={col.field}>{col.field}</option>)
-                }
-              })
-            }
-          </datalist>
-        </>
-      )
-    }
-
     return (
       <div
         className="custom-header-label"
         onContextMenu={this.handleContextMenu}
+        onClick={() => {
+          // 判断是否点击了添加列
+          if (this.props.column.getColId() == "yamleditLastAddColumn") {
+            this.addColumn()
+          }
+          else if (this.props.column.getColId() == "yamleditPropControlColumn") {
+            new PropControlModal(this.props.grid).open()
+          }
+        }}
       // onDoubleClick={() => {
       //   this.setState({ isRenamingHeaderName: true })
       // }}

@@ -4,14 +4,15 @@ export default {
   deleteThisDBConfig: "删除这个数据表格的配置信息",
   deleteDBConfirm: "您确定要删除该数据表格配置信息？此操作无法恢复",
   DBsUseRepeatedFolders: "文件夹重复☹️",
-  exportImportIntro: "你可以导出所有数据表格配置信息至'YAML Database Config.json'或者从'YAML Database Config.json'导入所有数据表格配置信息",
-  exportDB: "导出",
-  exportDBtooltip: "导出所有数据表格配置信息至'YAML Database Config.json'",
-  importDB: "导入",
-  importDBtooltip: "从'YAML Database Config.json'导入所有数据表格配置信息",
-  cantFindJson: "未找到'YAML Database Config.json'文件",
+  DBlocationTitle: "配置信息存储位置",
+  DBlocationDes: "选择数据表格配置信息的存储位置，配置信息存储在插件文件夹或者库文件夹下名为'YAML Database Config.json'的文件中",
+  pluginFolder: "插件文件夹",
+  vaultFolder: "库文件夹",
   // 还原操作
   restore: "还原上一步操作",
+  // 创建表格操作
+  createTable: "创建一个数据表格",
+  autoCreate: "自动创建",
   // 行操作删除文档
   deleteThisRow: '删除该文档',
   // 文件名称设置
@@ -24,6 +25,8 @@ export default {
   // 文件列的headerName
   yamleditFirstFileColumn: "文件",
   // 属性操作
+  colid: "属性名",
+  displayName: "显示名称",
   renameDisplayName: '重命名显示名称',
   renamePropName: '重命名属性',
   editProperty: '编辑属性',

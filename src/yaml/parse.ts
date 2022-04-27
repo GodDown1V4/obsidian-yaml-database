@@ -79,9 +79,9 @@ export class DataJson {
         })
 
         // 1.1、删除失效列
-        invalidColDefIndexList.map((value) => {
-            DBconfig.colDef.splice(value, 1)
-        })
+        // invalidColDefIndexList.map((value) => {
+        //     DBconfig.colDef.splice(value, 1)
+        // })
         // 1.2、检查有效列中是否包含 yamleditFirstFileColumn 是否存在
         if (validColDefNameList.indexOf("yamleditFirstFileColumn") == -1) {
             isOk = false

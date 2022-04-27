@@ -11,7 +11,7 @@ import DataGrid, { columnTypes, genFormulaValueGetter } from './DataGrid'
  * 1、属性显示控制
  * 2、页面条目限制
  */
-export class OperateMolda extends Modal {
+export class OperateModal extends Modal {
     grid: DataGrid
     api: GridApi
     plugin: YamlDatabasePlugin
@@ -48,7 +48,7 @@ export class OperateMolda extends Modal {
             if (col.colId == "yamleditFirstFileColumn") {
                 toggle.disabled = true
             }
-            div.createSpan().innerHTML = `&nbsp;&nbsp;${col.field}&nbsp;|&nbsp;${col.headerName}`
+            div.createSpan().innerHTML = `&nbsp;&nbsp;${col.colId}&nbsp;|&nbsp;${col.headerName ? col.headerName : col.field}`
             columnHideControlDiv.appendChild(div)
             return toggle
         })
@@ -255,23 +255,25 @@ export class OperateMolda extends Modal {
 }
 
 
-export class EditPropertyMolda extends Modal {
+export class EditPropertyMoldal extends Modal {
     grid: DataGrid
     plugin: YamlDatabasePlugin
     api: GridApi
-    propertyName: string
+    thisColid: string
+    propModal: PropControlModal
 
-    constructor(grid: DataGrid, propertyName: string) {
+    constructor(grid: DataGrid, thisColid: string, propModal?: PropControlModal) {
         super(grid.app)
         this.grid = grid
         this.plugin = grid.plugin
         this.api = grid.api
-        this.propertyName = propertyName
+        this.thisColid = thisColid
+        this.propModal = propModal
     }
 
     onOpen(): void {
         const title = this.titleEl
-        title.setText(`${t("editProperty")}: ${this.propertyName}`);
+        title.setText(`${t("editProperty")}: ${this.thisColid}`);
 
         const { contentEl } = this;
         const superThis = this
@@ -280,12 +282,12 @@ export class EditPropertyMolda extends Modal {
         // 属性类型选择
         const TypeDiv = contentEl.createDiv()
         TypeDiv.innerHTML = t("type")
-        const thisColumn = this.propertyName
+        const thisColumn = this.thisColid
 
         // 获取当前列原本的类型
         var thisType: string | Array<string> = ""
         columns.map((col: ColDef) => {
-            if (col.field == thisColumn) {
+            if (col.colId == thisColumn) {
                 thisType = col.type
             }
         })
@@ -466,9 +468,9 @@ export class EditPropertyMolda extends Modal {
         // 显隐和删除控制
         const hideControlDiv = contentEl.createDiv()
         // 显隐
-        hideControlDiv.createSpan().innerHTML = `${t("hideInView")}&nbsp;&nbsp;`
+        hideControlDiv.createSpan().innerHTML = `${t("displayOrHide")}&nbsp;&nbsp;`
         new ToggleComponent(hideControlDiv)
-            .setValue(true)
+            .setValue(this.grid.colimnApi.getColumn(thisColumn).isVisible())
             .onChange((value) => {
                 this.grid.colimnApi.setColumnVisible(thisColumn, value)
             })
@@ -498,5 +500,48 @@ export class EditPropertyMolda extends Modal {
     }
 
     onClose(): void {
+        if (this.propModal) this.propModal.displayProps();
+    }
+}
+
+
+
+export class PropControlModal extends Modal {
+    grid: DataGrid
+    api: GridApi
+    plugin: YamlDatabasePlugin
+
+    constructor(grid: DataGrid) {
+        super(grid.plugin.app)
+        this.grid = grid
+        this.api = grid.api
+        this.plugin = grid.plugin
+    }
+    onOpen(): void {
+        const title = this.titleEl
+        title.setText(t("editProperty"));
+        this.displayProps()
+    }
+
+    displayProps() {
+        const { contentEl } = this;
+        contentEl.innerHTML = ""
+        const superThis = this
+        this.api.getColumnDefs().map((col: ColDef) => {
+            if (col.colId == "yamleditLastAddColumn" || col.colId == "yamleditPropControlColumn" || col.colId == "yamleditFirstFileColumn") return;
+            const div = document.createElement("div")
+            new ToggleComponent(div)
+                .setValue(this.grid.colimnApi.getColumn(col.colId).isVisible())
+                .onChange((value) => {
+                    this.grid.colimnApi.setColumnVisible(col.colId, value)
+                })
+            div.setAttr("class", "PropControlModal")
+            const span = div.createSpan()
+            span.innerHTML = `${t("colid")}:&nbsp;${col.colId}&nbsp;&nbsp;(${t("displayName")}:&nbsp;${col.headerName ? col.headerName : col.field})`
+            span.onclick = function () {
+                new EditPropertyMoldal(superThis.grid, col.colId, superThis).open()
+            }
+            contentEl.appendChild(div)
+        })
     }
 }

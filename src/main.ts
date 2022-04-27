@@ -8,20 +8,31 @@ import {
   ButtonComponent,
   TFile,
   Notice,
+  Editor,
 } from 'obsidian'
 import React from 'react'
 import TableView from 'views/TableView'
 import t from 'i18n'
 import ReactDOM from 'react-dom'
 import { dbconfig } from 'yaml/parse'
-import { allYamlChangeHistory } from 'yaml/md'
+import { allYamlChangeHistory, Search } from 'yaml/md'
 
 
 export interface pluginSettings {
   databases: Array<dbconfig>
+  DBdataJsonLocation: "pluginFolder" | "vaultFolder"
+  DBdataJsonFolderPath: string
 }
 const DEFAULT_SETTINGS: pluginSettings = {
-  databases: []
+  databases: [],
+  DBdataJsonLocation: "pluginFolder",
+  DBdataJsonFolderPath: "/",
+}
+
+const DEFAULT_SETTINGS_VAULT: pluginSettings = {
+  databases: [],
+  DBdataJsonLocation: "vaultFolder",
+  DBdataJsonFolderPath: "/",
 }
 
 
@@ -49,6 +60,16 @@ export default class YamlDatabasePlugin extends Plugin {
           }
         }
       }
+    });
+
+    this.addCommand({
+      id: 'yaml-bulk-edit-created-table',
+      name: t("createTable"),
+      editorCallback: async (editor: Editor) => {
+        const tableString = `\`\`\`yamledit\n${t("autoCreate")} ${app.workspace.getActiveFile().path} ${new Date().toLocaleString()}\n\`\`\``
+        // console.log(tableString)
+        editor.replaceRange(tableString, editor.getCursor())
+      },
     });
 
     this.registerMarkdownCodeBlockProcessor(
@@ -129,11 +150,48 @@ export default class YamlDatabasePlugin extends Plugin {
   // 异步：加载设置
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const datajsonlocation = this.settings.DBdataJsonLocation
+    const datajsonFolderPath = this.settings.DBdataJsonFolderPath
+    // 判断datajson的位置
+    switch (this.settings.DBdataJsonLocation) {
+      case "vaultFolder": {
+        const folderPath = this.settings.DBdataJsonFolderPath
+        const file = app.vault.getAbstractFileByPath((folderPath.endsWith("/") ? "" : folderPath + "/") + "YAML Database Config.json")
+        if (file) {
+          // 有的话就读取库中的文件，否则不操作，即读取插件文件夹中的文件
+          if (file instanceof TFile) this.settings = Object.assign({}, DEFAULT_SETTINGS_VAULT, JSON.parse(await app.vault.read(file)));
+          // databases以外的信息以插件文件夹中的datajson为准
+          this.settings.DBdataJsonFolderPath = datajsonlocation
+          this.settings.DBdataJsonFolderPath = datajsonFolderPath
+        }
+        else {
+
+        }
+      } break;
+      default: break;
+    }
   }
 
   // 异步：保存设置
   async saveSettings() {
     await this.saveData(this.settings);
+    // 判断datajson的位置
+    switch (this.settings.DBdataJsonLocation) {
+      case "vaultFolder": {
+        // 存储表格信息到库中的datajson
+        const folderPath = this.settings.DBdataJsonFolderPath
+        const file = app.vault.getAbstractFileByPath((folderPath.endsWith("/") ? "" : folderPath + "/") + "YAML Database Config.json")
+        if (file) {
+          if (file instanceof TFile) app.vault.modify(file, JSON.stringify(this.settings))
+        }
+        else {
+          app.vault.create((folderPath.endsWith("/") ? "" : folderPath + "/") + "YAML Database Config.json", JSON.stringify(this.settings))
+        }
+        // 存储其它设置信息到插件文件夹中的datajson
+      } break;
+      default: break;
+    }
+
   }
 
 }
@@ -158,55 +216,102 @@ class SettingTab extends PluginSettingTab {
     containerEl.createEl('h2', { text: 'YAML Database' });
     containerEl.createEl("br")
     containerEl.createEl("a", { text: "Github", attr: { "href": "https://github.com/1657744680/obsidian-yaml-database" } })
-    containerEl.createEl("br")
+    containerEl.createEl("hr")
+
+    const DataJsonSetting = containerEl.createDiv()
+    this.dataJsonSetting(DataJsonSetting);
+    containerEl.createEl("hr")
+
     containerEl.createEl('strong', { text: t("settingsIntro") });
     containerEl.createEl("hr")
-    const DBIO = containerEl.createDiv()
-    new Setting(DBIO)
-      .setDesc(t("exportImportIntro"))
-      .addButton(button => {
-        button.setButtonText(t("exportDB"))
-        button.setTooltip(t("exportDBtooltip"))
-        button.onClick(async () => {
-          const data = JSON.stringify(this.plugin.settings)
-          const abFile = app.vault.getAbstractFileByPath('YAML Database Config.json')
-          if (abFile) {
-            if (abFile instanceof TFile) {
-              await app.vault.modify(abFile, data)
-            }
-          }
-          else {
-            await app.vault.create('YAML Database Config.json', data)
-          }
-          new Notice(t("exportDBtooltip"))
-        })
-      })
-      .addButton(button => {
-        button.setButtonText(t("importDB"))
-        button.setTooltip(t("importDBtooltip"))
-        button.onClick(async () => {
-          const abFile = app.vault.getAbstractFileByPath('YAML Database Config.json')
 
-          if (abFile) {
-            if (abFile instanceof TFile) {
-              const data = await app.vault.read(abFile)
-              if (data) {
-                this.plugin.settings = JSON.parse(data)
-                await this.plugin.saveSettings()
-                new Notice(t("importDBtooltip"))
-                await this.refreshDBinfo()
-              }
-            }
-          }
-          else {
-            new Notice(t("cantFindJson"))
-          }
-        })
-      })
-    containerEl.createEl("hr")
     this.DBinfoDiv = containerEl.createDiv()
     // 展示所有的Databases
     this.refreshDBinfo()
+  }
+
+  async dataJsonSetting(DataJsonSetting: HTMLDivElement) {
+    DataJsonSetting.innerHTML = ""
+    await this.plugin.loadSettings()
+
+    new Setting(DataJsonSetting)
+      .setName(t("DBlocationTitle"))
+      .setDesc(t("DBlocationDes"))
+      .addDropdown(dropdown => {
+        dropdown.addOptions(
+          {
+            "pluginFolder": t("pluginFolder"),
+            "vaultFolder": t("vaultFolder")
+          }
+        )
+        dropdown.setValue(this.plugin.settings.DBdataJsonLocation)
+        dropdown.onChange(async (value: "pluginFolder" | "vaultFolder") => {
+          if (value != this.plugin.settings.DBdataJsonLocation) {
+            this.plugin.settings.DBdataJsonLocation = value;
+            await this.plugin.saveSettings()
+            this.dataJsonSetting(DataJsonSetting)
+          }
+        })
+      })
+    // 搜索项
+    switch (this.plugin.settings.DBdataJsonLocation) {
+      case 'vaultFolder': {
+        const folderInput = DataJsonSetting.createEl("input", {
+          attr: {
+            type: "text",
+            class: 'filterInput',
+            placeholder: t("plsSelectAFolder"),
+            list: "folderSearch",
+            "value": this.plugin.settings.DBdataJsonFolderPath
+          }
+        })
+        const folderInputDataList = DataJsonSetting.createEl("datalist", {
+          attr: {
+            id: "folderSearch"
+          }
+        })
+        new Search(this.app).getAllFoldersPath().map((folder) => {
+          folderInputDataList.createEl("option", {
+            attr: {
+              value: folder
+            }
+          })
+        })
+
+        const folderConfirmButton = DataJsonSetting.createEl("button", {
+          attr: {
+            "style": "background-color: #CC3333;color:white"
+          }
+        })
+        folderConfirmButton.toggleVisibility(false)
+        const superThis = this
+        folderInput.oninput = function () {
+          if (new Search(superThis.app).getAllFoldersPath().indexOf(folderInput.value) != -1 && folderInput.value != superThis.plugin.settings.DBdataJsonFolderPath) {
+            folderConfirmButton.toggleVisibility(true)
+          }
+          else folderConfirmButton.toggleVisibility(false)
+        }
+
+        folderConfirmButton.innerHTML = t("applyTheChanges")
+        folderConfirmButton.onclick = async function () {
+          if (new Search(superThis.app).getAllFoldersPath().indexOf(folderInput.value) != -1) {
+            // 若原文件夹下有datajson文件则移动该文件至新文件夹下
+            const folderPath = superThis.plugin.settings.DBdataJsonFolderPath
+            const file = superThis.app.vault.getAbstractFileByPath((folderPath.endsWith("/") ? "" : folderPath + "/") + "YAML Database Config.json")
+            if (file) {
+              await superThis.app.fileManager.renameFile(file, (folderInput.value.endsWith("/") ? "" : folderInput.value + "/") + "YAML Database Config.json")
+            }
+            superThis.plugin.settings.DBdataJsonFolderPath = folderInput.value;
+            await superThis.plugin.saveSettings()
+            superThis.dataJsonSetting(DataJsonSetting)
+          }
+          else {
+            new Notice(`${t("isAWrongFolderPath")}: ${folderInput.value}`)
+          }
+        }
+      }; break;
+      default: break;
+    }
   }
 
   // 刷新并显示所有DB的信息
@@ -240,43 +345,6 @@ class SettingTab extends PluginSettingTab {
     })
   }
 }
-// 导出所有DB信息
-class ImportDBsConfig extends Modal {
-  settingTab: SettingTab
-  plugin: YamlDatabasePlugin
-  index: number
-  id: string
-
-  constructor(settingTab: SettingTab, index: number, id: string) {
-    super(settingTab.plugin.app)
-    this.settingTab = settingTab
-    this.plugin = settingTab.plugin
-    this.index = index
-    this.id = id
-  }
-
-  onOpen(): void {
-    const title = this.titleEl
-    title.setText(`ID: ${this.id}`)
-    const { contentEl } = this;
-    const data = JSON.stringify(this.plugin.settings.databases[this.index])
-    const aux = document.createElement("textarea");
-    aux.value = data;
-    contentEl.appendChild(aux)
-    new ButtonComponent(contentEl)
-      .setIcon("document")
-      .onClick(async () => {
-        const no = this.plugin.settingsHasDB(this.id)
-        if (no == this.index) {
-          aux.select();
-          document.execCommand("copy");
-          this.close()
-        }
-      })
-
-  }
-}
-// 导出单个DB信息
 
 // 删除确认面板
 class deleteDBconfirm extends Modal {

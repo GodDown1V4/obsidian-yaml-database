@@ -23,7 +23,7 @@ import {
 import CustomHeader from './CustomHeader'
 import { CtimeCellRender, ImgCellRender, InLinkCellRender, MtimeCellRender, TagCellRender, TextCellRender, TodoCellRender, UrlCellRender } from './CustomCellRender'
 import { DataJson, dbconfig } from 'yaml/parse'
-import { OperateMolda } from './OperateModal'
+import { OperateModal } from './OperateModal'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory, Search } from 'yaml/md'
 import YamlDatabasePlugin from 'main'
 import { DateEditor, InlinkEditor, NumberEditor, MultiSelectEditor, TimeEditor, SelectEditor } from './CustomCellEditor'
@@ -281,7 +281,19 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
     // console.log('state更改并进入eseEffect');
     if (prevState.columnDefs !== this.state.columnDefs) {
       // 更新列
-      const newColumns = this.state.columnDefs.map(el => {
+      const newColumns: Array<ColDef> = new Array()
+      var yamleditLastAddColumnIndex = 0
+      var yamleditPropControlColumnIndex = 0
+      this.state.columnDefs.map((el: ColDef, index: number) => {
+        if (el.colId == "yamleditLastAddColumn") {
+          yamleditLastAddColumnIndex = index
+          return;
+        }
+        else if (el.colId == "yamleditPropControlColumn") {
+          yamleditPropControlColumnIndex = index
+          return;
+        }
+
         el.cellEditor = columnTypes[String(el.type)]["cellEditor"]
         el.cellRenderer = columnTypes[String(el.type)]["cellRenderer"]
         el.filter = columnTypes[String(el.type)]["filter"]
@@ -333,11 +345,34 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
         else {
           el.valueGetter = defaultValueGetter
         }
-        // 返回 el
-        return el
+        newColumns.push(el)
       })
-      this.api.setColumnDefs(newColumns)
-      this.dataJson.saveColDef(this.api)
+      // 判断是否正在编辑列
+      if (this.state.isEditingHeaders) {
+        // 在最后一列增加一列用于添加列，还有一列用于控制列的显示和隐藏
+        newColumns.push({
+          headerComponent: CustomHeader,
+          colId: "yamleditLastAddColumn",
+          headerName: "+",
+          width: 50,
+          pinned: "right",
+          editable: false
+        })
+        newColumns.push({
+          headerComponent: CustomHeader,
+          colId: "yamleditPropControlColumn",
+          headerName: "···",
+          width: 50,
+          pinned: "right",
+          editable: false
+        })
+        this.api.setColumnDefs(newColumns)
+      }
+      else {
+        this.api.setColumnDefs(newColumns)
+        // 保存更改
+        this.dataJson.saveColDef(this.api)
+      }
     }
   }
 
@@ -605,10 +640,9 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
     this.setState({
       columnDefs: newColumns
     })
-    // this.api.setColumnDefs(newColumns)
-    if (!bool) {
-      this.dataJson.saveColDef(this.api)
-    }
+    // if (!bool) { // 完成修改
+    //   this.
+    // }
   }
 
   async refreshBtnOnClick() {
@@ -671,7 +705,7 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
 
           <button
             style={{ "display": this.state.displayOperateButton && !this.state.isEditingHeaders ? "inline" : "none" }}
-            onClick={() => { new OperateMolda(this).open() }}
+            onClick={() => { new OperateModal(this).open() }}
           >
             {t("tableSettings")}
           </button>

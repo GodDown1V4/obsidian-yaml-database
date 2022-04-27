@@ -114,3 +114,10 @@ textarea.formula {
   width: 700px;
   height: 350px;
 }
+
+div.PropControlModal :hover {
+  background-color: lightsteelblue;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+}
