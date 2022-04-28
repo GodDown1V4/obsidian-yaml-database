@@ -134,7 +134,7 @@ export class ImgCellRender extends Component<Props, State> {
   }
 
   render() {
-    var value: string = unescape(this.state.cellValue)
+    var value: string = decodeURI(this.state.cellValue)
     if (!value.startsWith('http://') && !value.startsWith('https://')) {
       // 说明是本地图片
       // 获取当前库在设备中的路径
