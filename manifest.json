@@ -1,7 +1,7 @@
 {
   "id": "obsidian-yaml-database",
   "name": "YAML Database",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "minAppVersion": "0.9.12",
   "description": "Helps users manage subdocument YAML properties that are located under the same folder",
   "author": "wd",

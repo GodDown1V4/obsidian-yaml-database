@@ -172,15 +172,6 @@
           "sortIndex": null
         },
         {
-          "colId": "Property",
-          "field": "Property",
-          "headerName": "Property",
-          "type": "createdTime",
-          "width": 200,
-          "sort": null,
-          "sortIndex": null
-        },
-        {
           "colId": "官方网站",
           "field": "官方网站",
           "headerName": "官方网站",
@@ -225,6 +216,14 @@
           "sort": null,
           "sortIndex": null,
           "hide": true
+        },
+        {
+          "field": "Property",
+          "type": "checkbox",
+          "colId": "Property",
+          "width": 200,
+          "sort": null,
+          "sortIndex": null
         }
       ],
       "folder": "电影",

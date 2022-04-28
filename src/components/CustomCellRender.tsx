@@ -76,9 +76,8 @@ export class TodoCellRender extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.cellValue = this.props.value.trim()
     this.state = {
-      cellValue: this.cellValue == "true" ? true : false,
+      cellValue: this.props.value == "true" ? true : false,
     }
   }
 
