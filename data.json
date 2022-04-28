@@ -166,7 +166,7 @@
           "colId": "banner",
           "field": "banner",
           "headerName": "banner",
-          "type": "text",
+          "type": "img",
           "width": 200,
           "sort": null,
           "sortIndex": null
@@ -230,11 +230,6 @@
       "folder": "电影",
       "paginationSize": 50,
       "filterModal": {
-        "yamleditFirstFileColumn": {
-          "filterType": "text",
-          "type": "contains",
-          "filter": "2"
-        },
         "banner": {
           "filterType": "text",
           "type": "contains",
@@ -472,6 +467,14 @@
           "type": "text",
           "width": 200,
           "hide": true,
+          "sort": null,
+          "sortIndex": null
+        },
+        {
+          "field": "Property",
+          "type": "text",
+          "colId": "Property_1",
+          "width": 200,
           "sort": null,
           "sortIndex": null
         }

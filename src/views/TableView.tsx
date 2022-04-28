@@ -1,5 +1,5 @@
 import React from 'react'
-import { App, Plugin } from 'obsidian'
+import { App, MarkdownPostProcessorContext, Plugin } from 'obsidian'
 import DataGrid from 'components/DataGrid'
 import ErrorBoundary from 'components/ErrorBoundary'
 import '../styles/TableView.css'
@@ -10,6 +10,7 @@ interface Props {
   databaseID: string
   plugin: YamlDatabasePlugin
   paginationSize: number
+  context: MarkdownPostProcessorContext
 }
 
 export default class TableView extends React.Component<Props> {
@@ -24,6 +25,7 @@ export default class TableView extends React.Component<Props> {
           databaseID={this.props.databaseID}
           plugin={this.props.plugin}
           paginationSize={this.props.paginationSize}
+          context={this.props.context}
         ></DataGrid>
       </ErrorBoundary>
     )

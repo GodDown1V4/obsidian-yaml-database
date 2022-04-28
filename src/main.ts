@@ -105,7 +105,8 @@ export default class YamlDatabasePlugin extends Plugin {
             const view = React.createElement(TableView, {
               databaseID: source,
               plugin: this,
-              paginationSize: DBconfig.paginationSize
+              paginationSize: DBconfig.paginationSize,
+              context: context
             })
             ReactDOM.render(view, el)
           }

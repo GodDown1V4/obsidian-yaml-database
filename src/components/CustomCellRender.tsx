@@ -4,6 +4,7 @@ import { App, MarkdownRenderer, TFile } from 'obsidian'
 import { allYamlChangeHistory, MDIO, oneOperationYamlChangeHistory } from 'yaml/md'
 import { linkSync } from 'fs'
 import t from 'i18n'
+import { unescape } from 'querystring'
 
 interface Props extends ICellRendererParams {
   app: App
@@ -134,10 +135,28 @@ export class ImgCellRender extends Component<Props, State> {
   }
 
   render() {
-
+    var value: string = unescape(this.state.cellValue)
+    if (!value.startsWith('http://') && !value.startsWith('https://')) {
+      // 说明是本地图片
+      // 获取当前库在设备中的路径
+      const basePath = 'app://local/' + app.vault.adapter["basePath"].replace("\\", "/")
+      // 遍历库寻找该文件
+      var fileVaultPath = ""
+      for (const file of app.vault.getAllLoadedFiles()) {
+        if (file.path.endsWith(value)) {
+          fileVaultPath = file.path
+        }
+      }
+      if (!fileVaultPath) {
+        value = ""
+      }
+      else {
+        value = basePath + "/" + fileVaultPath
+      }
+    }
     return (
       <img
-        src={this.state.cellValue}
+        src={value}
       >
       </img>
     )

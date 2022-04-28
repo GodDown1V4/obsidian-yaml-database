@@ -1,4 +1,4 @@
-import { App, Menu, Point, TFile } from 'obsidian'
+import { App, MarkdownPostProcessorContext, Menu, Point, TFile } from 'obsidian'
 import React, { EffectCallback, useEffect } from 'react'
 import { AgGridReact } from 'ag-grid-react'
 import 'ag-grid-community/dist/styles/ag-grid.css'
@@ -34,6 +34,7 @@ interface Props {
   databaseID: string
   plugin: YamlDatabasePlugin
   paginationSize: number
+  context: MarkdownPostProcessorContext
 }
 
 interface State {
@@ -260,7 +261,6 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
 
     }
 
-
     this.handleContextMenu = this.handleContextMenu.bind(this)  // 右键选单：暂不需要
     this.onCellEditingStopped = this.onCellEditingStopped.bind(this)  // 一个单元格停止编辑：修改文件名或者属性值 TODO
     this.onColumnMoved = this.onColumnMoved.bind(this)  // 列移动：重新调整prop:排序顺序
@@ -426,7 +426,7 @@ export default class DataGrid extends React.Component<Props, State, EffectCallba
           else {
             await this.app.vault.trash(this.app.vault.getAbstractFileByPath(path), true);
           }
-          console.log(params);
+          // console.log(params);
 
           this.api.applyTransaction({
             remove: [params.data]
