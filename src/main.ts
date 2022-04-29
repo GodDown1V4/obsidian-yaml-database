@@ -220,21 +220,24 @@ class SettingTab extends PluginSettingTab {
     containerEl.createEl("hr")
 
     const DataJsonSetting = containerEl.createDiv()
-    this.dataJsonSetting(DataJsonSetting);
     containerEl.createEl("hr")
 
     containerEl.createEl('strong', { text: t("settingsIntro") });
     containerEl.createEl("hr")
 
-    this.DBinfoDiv = containerEl.createDiv()
     // 展示所有的Databases
-    this.refreshDBinfo()
+    this.DBinfoDiv = containerEl.createDiv()
+
+    // 展示数据
+    this.dataJsonSetting(DataJsonSetting);
+    // this.refreshDBinfo()
   }
 
   async dataJsonSetting(DataJsonSetting: HTMLDivElement) {
     DataJsonSetting.innerHTML = ""
     await this.plugin.loadSettings()
-
+    await this.refreshDBinfo()
+    // 下拉框选择datajson存储位置
     new Setting(DataJsonSetting)
       .setName(t("DBlocationTitle"))
       .setDesc(t("DBlocationDes"))
@@ -249,12 +252,21 @@ class SettingTab extends PluginSettingTab {
         dropdown.onChange(async (value: "pluginFolder" | "vaultFolder") => {
           if (value != this.plugin.settings.DBdataJsonLocation) {
             this.plugin.settings.DBdataJsonLocation = value;
+            if (value == "vaultFolder") {
+              // 如果更改为库文件，则先判断库文件中是否有datajson
+              // 如果存在，则先读取并使用库datajson中的databases信息
+              const folderPath = this.plugin.settings.DBdataJsonFolderPath
+              const file = app.vault.getAbstractFileByPath((folderPath.endsWith("/") ? "" : folderPath + "/") + "YAML Database Config.json")
+              if (file) {
+                if (file instanceof TFile) this.plugin.settings.databases = JSON.parse(await this.app.vault.read(file))["databases"]
+              }
+            }
             await this.plugin.saveSettings()
             this.dataJsonSetting(DataJsonSetting)
           }
         })
       })
-    // 搜索项
+    // 文件夹搜索项
     switch (this.plugin.settings.DBdataJsonLocation) {
       case 'vaultFolder': {
         const folderInput = DataJsonSetting.createEl("input", {
@@ -296,13 +308,28 @@ class SettingTab extends PluginSettingTab {
         folderConfirmButton.innerHTML = t("applyTheChanges")
         folderConfirmButton.onclick = async function () {
           if (new Search(superThis.app).getAllFoldersPath().indexOf(folderInput.value) != -1) {
-            // 若原文件夹下有datajson文件则移动该文件至新文件夹下
             const folderPath = superThis.plugin.settings.DBdataJsonFolderPath
-            const file = superThis.app.vault.getAbstractFileByPath((folderPath.endsWith("/") ? "" : folderPath + "/") + "YAML Database Config.json")
-            if (file) {
-              await superThis.app.fileManager.renameFile(file, (folderInput.value.endsWith("/") ? "" : folderInput.value + "/") + "YAML Database Config.json")
-            }
+            const sourceFile = superThis.app.vault.getAbstractFileByPath((folderPath.endsWith("/") ? "" : folderPath + "/") + "YAML Database Config.json")
+            const targetFile = superThis.app.vault.getAbstractFileByPath((folderInput.value.endsWith("/") ? "" : folderInput.value + "/") + "YAML Database Config.json")
+
             superThis.plugin.settings.DBdataJsonFolderPath = folderInput.value;
+            if (targetFile) {
+              // 若目标文件夹下有datajson文件则使用该文件作为datajson文件
+              // 原datajson文件会被删除
+              if (sourceFile) await superThis.app.vault.trash(sourceFile, true);
+              // 现在先读取目标文件中的DB信息
+              if (targetFile instanceof TFile) superThis.plugin.settings.databases = JSON.parse(await superThis.app.vault.read(targetFile))["databases"]
+            }
+            else {
+              // 若原文件夹下有datajson文件则移动该文件至新文件夹下
+              if (sourceFile) {
+                await superThis.app.fileManager.renameFile(sourceFile, (folderInput.value.endsWith("/") ? "" : folderInput.value + "/") + "YAML Database Config.json")
+              }
+              else {  // 既没有旧文件，也没有新文件那就创建一个
+                await superThis.app.vault.create((folderInput.value.endsWith("/") ? "" : folderInput.value + "/") + "YAML Database Config.json", JSON.stringify(superThis.plugin.settings))
+              }
+            }
+
             await superThis.plugin.saveSettings()
             superThis.dataJsonSetting(DataJsonSetting)
           }
