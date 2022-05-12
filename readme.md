@@ -1,3 +1,5 @@
+> 学业繁重，目前已经转[Flowus](https://flowus.cn/login?code=CCKF3Z)了，此插件停止更新维护，感谢大家的支持！
+
 [升级注意事项！！](https://github.com/1657744680/obsidian-yaml-bulk-edit/issues/12)
 
 > **此插件涉及到批量修改文档内容，所以使用前请进行数据备份！！使用此插件导致的任何数据丢失本人概不负责。**
